@@ -1,3 +1,31 @@
+// font ------------------------------------------------------------------------
+@import url('https://fonts.googleapis.com/css2?family=Mate:ital@0;1&display=swap');
+
+@mixin mate-regular {
+  font-family: "Mate", serif;
+  font-weight: 400;
+  font-style: normal;
+  
+}
+@mixin mate-regular-italic {
+  font-family: "Mate", serif;
+  font-weight: 400;
+  font-style: italic;
+}
+
+p {
+  font-size: 1.3rem;
+}
+
+// root ------------------------------------------------------------------------
+html, body, #root, #app {
+  @include mate-regular;
+  margin: 0;
+  padding: 0;
+  color: black;
+  height: 100vh;
+}
+
 // 404 -------------------------------------------------------------------------
 #page-not-found {
   display: flex;

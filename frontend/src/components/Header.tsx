@@ -28,6 +28,8 @@ const Header = () => {
         <span className="header-title-small">per</span>
         <span className="header-title-large">Tra</span>
         <span className="header-title-small">der</span>
+        <span className="header-title-large">S</span>
+        <span className="header-title-small">olo</span>
       </Link>
       {context.logged_in ? null : <Buttons />}
     </header>
