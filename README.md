@@ -1,3 +1,3 @@
-# PaTra
+# PaTraS
 
-Paper Trading, but minimalist
+Paper Trading Solo: Minimalist Paper Trading
