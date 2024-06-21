@@ -1,0 +1,10 @@
+[package]
+name = "server-local"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+server-core = { path = "../core/" }
+
+[lints]
+workspace = true
