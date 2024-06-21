@@ -1,6 +1,6 @@
 //! pre compile utilities
 
-use std::{fs, path::Path};
+use std::fs;
 
 use anyhow::{bail, Context};
 use toml::Table;
