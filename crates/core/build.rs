@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::{bail, Context};
 
-const CONFIG_PATH: &str = "../../../.env";
+const CONFIG_PATH: &str = "../../.env";
 
 fn main() {
     if let Err(e) = run() {

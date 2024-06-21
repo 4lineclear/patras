@@ -26,7 +26,7 @@ pub fn router() -> Router {
 ///
 /// # Errors
 ///
-/// Fails when either [`TcpListener`] or [`axum::serve`] does
+/// Fails when either [`TcpListener`] or [`axum::serve()`] does
 pub async fn serve(router: Router) -> anyhow::Result<()> {
     tracing_subscriber::fmt().init();
     let address = format!("127.0.0.1:{}", env!("BACKEND_PORT"));
