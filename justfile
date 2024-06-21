@@ -1,9 +1,7 @@
 export PATH := "./node_modules/.bin:" + env_var('PATH')
 
 build: 
-    cargo build --all && \
-    cd client && vite build && \
-    cp -r ./dist ../  
+    cd client && vite build && cd ../ && cargo build --all && 
 
 # Run vite
 vite *ARGS:

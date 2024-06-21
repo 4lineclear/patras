@@ -1,10 +1,11 @@
 //! pre compile utilities
 
-use std::path::Path;
+use std::{fs, path::Path};
 
 use anyhow::{bail, Context};
+use toml::Table;
 
-const CONFIG_PATH: &str = "../../.env";
+const OPTS_PATH: &str = "../../opts.toml";
 
 fn main() {
     if let Err(e) = run() {
@@ -14,28 +15,22 @@ fn main() {
 
 fn run() -> anyhow::Result<()> {
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed={CONFIG_PATH}");
-    dotenvy::from_path(
-        Path::new(CONFIG_PATH)
-            .canonicalize()
-            .context("Unable to get absolute path to .env file")?,
-    )?;
-    dotenvy::dotenv().context("Unable load env variables")?;
+    println!("cargo:rerun-if-changed={OPTS_PATH}");
+    let config_text = fs::read_to_string(OPTS_PATH).context("Failed to read config.toml")?;
+    let config = toml::from_str::<Table>(&config_text).context("Failed to parse config.toml")?;
 
-    let backend_port = std::env::var("RUST_PORT")
-        .context("Missing backend local port")?
-        .parse::<u16>()
-        .context("RUST_PORT was not 16 bit unsigned integer")?;
-    let frontend_port = std::env::var("VITE_PORT")
-        .context("Missing frontend local port")?
-        .parse::<u16>()
-        .context("VITE_PORT was not 16 bit unsigned integer")?;
+    let server_port = config["local"]["ports"]["server"]
+        .as_integer()
+        .context("Missing server local port")?;
+    let client_port = config["local"]["ports"]["client"]
+        .as_integer()
+        .context("Missing client local port")?;
 
-    if frontend_port == backend_port {
-        bail!("Ports of fronted and backend are the same: {frontend_port}");
+    if client_port == server_port {
+        bail!("Ports of server and client are the same: {client_port}");
     }
 
-    println!("cargo:rustc-env=BACKEND_PORT={backend_port}");
-    println!("cargo:rustc-env=FRONTEND_PORT={frontend_port}");
+    println!("cargo:rustc-env=SERVER_PORT={server_port}");
+    println!("cargo:rustc-env=CLIENT_PORT={client_port}");
     Ok(())
 }

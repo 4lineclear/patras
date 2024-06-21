@@ -1,0 +1,2 @@
+local.ports.server = 8080
+local.ports.client = 8000

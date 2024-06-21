@@ -1,9 +1,12 @@
-import { defineConfig, loadEnv } from "vite";
+import fs from "fs";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import TOML from "smol-toml";
 
 // https://vitejs.dev/config/
 export default defineConfig(() => {
-  const port = parseInt(loadEnv("all", "..").VITE_PORT);
+  const opts = TOML.parse(fs.readFileSync("../opts.toml").toString());
+  const port = opts["local.ports.client"] as number;
   return {
     plugins: [react()],
     server: {
