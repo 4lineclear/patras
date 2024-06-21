@@ -1,7 +1,7 @@
 export PATH := "./node_modules/.bin:" + env_var('PATH')
 
-build: 
-    cd client && vite build && cd ../ && cargo build --all && 
+cargo-dev: 
+    cargo build --all && 
 
 # Run vite
 vite *ARGS:

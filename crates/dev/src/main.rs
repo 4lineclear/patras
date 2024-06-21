@@ -8,6 +8,6 @@ use anyhow::Result;
 #[tokio::main]
 async fn main() -> Result<()> {
     let router = server_core::router();
-    server_core::serve(router).await?;
+    server_core::serve(router, tracing_subscriber::fmt()).await?;
     Ok(())
 }

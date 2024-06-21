@@ -16,6 +16,7 @@ pub use axum;
 pub use tokio;
 pub use tracing;
 pub use tracing_subscriber;
+use tracing_subscriber::fmt::SubscriberBuilder;
 
 /// Handles the shutdown procedure
 pub mod shutdown;
@@ -36,13 +37,16 @@ pub fn router() -> Router {
     // TraceLayer::new_for_http().on_failure(()),
 }
 
-/// Serves the given router
+// TODO: Move serve to the dev crate.
+// Maybe also create a higher level Serve/ServeBuilder
+
+/// Serves the given router & inits the given subscriber
 ///
 /// # Errors
 ///
 /// Fails when either [`TcpListener`] or [`axum::serve()`] does
-pub async fn serve(router: Router) -> anyhow::Result<()> {
-    tracing_subscriber::fmt().init();
+pub async fn serve(router: Router, ts: SubscriberBuilder) -> anyhow::Result<()> {
+    ts.init();
     let address = format!("127.0.0.1:{}", env!("SERVER_PORT"));
     let listener = TcpListener::bind(&address).await?;
 

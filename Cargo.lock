@@ -691,6 +691,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "prod"
+version = "0.1.0"
+
+[[package]]
 name = "quote"
 version = "1.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -840,7 +844,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "server-local"
+name = "server-dev"
 version = "0.1.0"
 dependencies = [
  "server-core",

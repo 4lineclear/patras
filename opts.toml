@@ -1,2 +1,2 @@
-local.ports.server = 8080
-local.ports.client = 8000
+dev.ports.server = 8080
+dev.ports.client = 8000
