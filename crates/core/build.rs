@@ -22,20 +22,20 @@ fn run() -> anyhow::Result<()> {
     )?;
     dotenvy::dotenv().context("Unable load env variables")?;
 
-    let backend_port = std::env::var("BACKEND_PORT")
+    let backend_port = std::env::var("RUST_PORT")
         .context("Missing backend local port")?
         .parse::<u16>()
-        .context("BACKEND_PORT was not 16 bit unsigned integer")?;
-    let frontend_port = std::env::var("FRONTEND_PORT")
+        .context("RUST_PORT was not 16 bit unsigned integer")?;
+    let frontend_port = std::env::var("VITE_PORT")
         .context("Missing frontend local port")?
         .parse::<u16>()
-        .context("FRONTEND_PORT was not 16 bit unsigned integer")?;
+        .context("VITE_PORT was not 16 bit unsigned integer")?;
 
     if frontend_port == backend_port {
         bail!("Ports of fronted and backend are the same: {frontend_port}");
     }
 
-    println!("cargo:rustc-env=FRONTEND_PORT={frontend_port}");
     println!("cargo:rustc-env=BACKEND_PORT={backend_port}");
+    println!("cargo:rustc-env=FRONTEND_PORT={frontend_port}");
     Ok(())
 }
