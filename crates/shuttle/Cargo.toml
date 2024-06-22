@@ -1,5 +1,5 @@
 [package]
-name = "server-shuttle"
+name = "shuttle-server"
 version = "0.1.0"
 edition = "2021"
 

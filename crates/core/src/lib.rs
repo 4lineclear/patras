@@ -2,9 +2,7 @@
 
 use std::time::Duration;
 
-use anyhow::Context;
 use axum::{routing::get, Router};
-use tokio::net::TcpListener;
 use tower_http::{
     catch_panic::CatchPanicLayer, compression::CompressionLayer, timeout::TimeoutLayer,
     trace::TraceLayer,
@@ -16,7 +14,6 @@ pub use axum;
 pub use tokio;
 pub use tracing;
 pub use tracing_subscriber;
-use tracing_subscriber::fmt::SubscriberBuilder;
 
 /// Handles the shutdown procedure
 pub mod shutdown;
@@ -32,30 +29,4 @@ pub fn router() -> Router {
             TimeoutLayer::new(Duration::from_secs(4)),
             CatchPanicLayer::new(),
         ))
-    // TODO: Consider using the below layers:
-    // SetSensitiveHeadersLayer::new([AUTHORIZATION]),
-    // TraceLayer::new_for_http().on_failure(()),
-}
-
-// TODO: Move serve to the dev crate.
-// Maybe also create a higher level Serve/ServeBuilder
-
-/// Serves the given router & inits the given subscriber
-///
-/// # Errors
-///
-/// Fails when either [`TcpListener`] or [`axum::serve()`] does
-pub async fn serve(router: Router, ts: SubscriberBuilder) -> anyhow::Result<()> {
-    ts.init();
-    let address = format!("127.0.0.1:{}", env!("SERVER_PORT"));
-    let listener = TcpListener::bind(&address).await?;
-
-    tracing::info!("Server Opened, listening on {address}");
-    axum::serve(listener, router)
-        .with_graceful_shutdown(shutdown::signal())
-        .await
-        .context("Axum Server Error")?;
-    tracing::info!("Server Closed");
-
-    Ok(())
 }

@@ -26,12 +26,10 @@ function serve(): UserConfig {
           secure: false,
           ws: true,
           configure: configureProxy,
+          rewrite: (path) => path.replace(/^\/api/, ""),
         },
       },
       port: ports.client,
-    },
-    esbuild: {
-      drop: ["console"],
     },
   };
 }
@@ -89,5 +87,8 @@ function isTomlRecord(prim: TomlPrimitive): prim is {
 function build(): UserConfig {
   return {
     plugins: [react()],
+    esbuild: {
+      drop: ["console"],
+    },
   };
 }

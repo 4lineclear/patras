@@ -1,5 +1,8 @@
-const IndexRouter = () => (
-  <div id="index-router">
+const PatrasLink = (<a target="_blank" href="https://en.wikipedia.org/wiki/Patras">Patras</a>);
+const GithubLink = (<a target="_blank" href="https://github.com/4lineclear/patras">Github</a>);
+
+const Index = () => (
+  <div id="index">
     <br />
     <br />
     <p>PaTraS is a hyper minimalist paper trading service</p>
@@ -15,10 +18,15 @@ const IndexRouter = () => (
       <li>Manual Input</li>
       <li>Automated Input</li>
     </ul>
+    <br />
     <p>
-      See the GitHub <a target="_blank" href="https://github.com/4lineclear/patras">here</a>.
+      This service is named after {PatrasLink},
+      a Greek city dubbed "Gate to the West"
+    </p>
+    <p>
+      See the {GithubLink}.
     </p>
   </div>
 );
 
-export default IndexRouter
+export default Index

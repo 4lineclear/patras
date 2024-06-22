@@ -1,7 +1,7 @@
 export PATH := "./node_modules/.bin:" + env_var('PATH')
 
 cargo-dev: 
-    cargo build --all && 
+    cargo run -p dev-server
 
 # Run vite
 vite *ARGS:

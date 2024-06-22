@@ -221,12 +221,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "core-server"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "serde",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "crc32fast"
 version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a97769d94ddab943e4510d138150169a2758b5ef3eb191a9ee688de3e23ef7b3"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "dev-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "core-server",
+ "toml",
 ]
 
 [[package]]
@@ -691,7 +714,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "prod"
+name = "prod-server"
 version = "0.1.0"
 
 [[package]]
@@ -829,32 +852,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "server-core"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "axum",
- "serde",
- "tokio",
- "toml",
- "tower",
- "tower-http",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "server-dev"
-version = "0.1.0"
-dependencies = [
- "server-core",
-]
-
-[[package]]
-name = "server-shuttle"
-version = "0.1.0"
-
-[[package]]
 name = "sharded-slab"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -862,6 +859,10 @@ checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
 dependencies = [
  "lazy_static",
 ]
+
+[[package]]
+name = "shuttle-server"
+version = "0.1.0"
 
 [[package]]
 name = "signal-hook-registry"

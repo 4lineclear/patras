@@ -1,10 +1,15 @@
 [package]
-name = "server-dev"
+name = "dev-server"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-server-core = { path = "../core/" }
+core-server = { path = "../core/" }
+
+[build-dependencies]
+anyhow = "1.0"
+toml = "0.8"
+
 
 [lints]
 workspace = true
