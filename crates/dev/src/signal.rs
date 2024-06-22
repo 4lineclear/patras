@@ -66,10 +66,16 @@ fn handle_console_input(s: &str) -> bool {
     match s {
         "h" => println!(
             "\
+            press h + enter to show help(this text)\n\
+            press o + enter to open client in browser\n\
             press u + enter to show server url\n\
             press q + enter to quit\
             "
         ),
+        "o" => match webbrowser::open(concat!("http://localhost:", env!("CLIENT_PORT"))) {
+            Ok(()) => tracing::info!("Opening browser..."),
+            Err(_) => tracing::info!("Unable to open browser"),
+        },
         "u" => println!("Local port: http://localhost:{}/", env!("SERVER_PORT")),
         "q" => return true,
         _ => (),

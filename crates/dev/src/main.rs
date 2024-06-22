@@ -8,10 +8,8 @@ use tokio::net::TcpListener;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
-/// Handles the shutodwn protocol
-pub mod shutdown;
-
-// TODO: add async stdin + console clearing for better dev expeerience
+/// Handles input signal protocols
+pub mod signal;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -32,7 +30,7 @@ pub async fn serve() -> Result<()> {
 
     tracing::info!("Server Opened, listening on {address}");
     axum::serve(listener, router)
-        .with_graceful_shutdown(shutdown::signal())
+        .with_graceful_shutdown(signal::signal())
         .await
         .context("Axum Server Error")?;
     tracing::info!("Server Closed");
@@ -40,11 +38,19 @@ pub async fn serve() -> Result<()> {
     Ok(())
 }
 
-fn init_logging() -> Result<()> {
+/// Initializes logging
+///
+/// # Errors
+///
+/// Fails when the filter is not installed
+pub fn init_logging() -> Result<()> {
     let fitler_layer = EnvFilter::builder()
-        .with_default_directive(LevelFilter::INFO.into())
+        .with_default_directive(LevelFilter::OFF.into())
         .from_env()
-        .context("Failed to parse env for logging")?;
+        .context("Failed to parse env for logging")?
+        .add_directive("core_server=trace".parse()?)
+        .add_directive("dev_server=trace".parse()?)
+        .add_directive("tower_http=trace".parse()?);
     tracing_subscriber::registry()
         .with(fitler_layer)
         .with(tracing_subscriber::fmt::layer())
