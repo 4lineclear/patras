@@ -15,9 +15,6 @@ pub use tokio;
 pub use tracing;
 pub use tracing_subscriber;
 
-/// Handles the shutdown procedure
-pub mod shutdown;
-
 /// Creates the standard router
 pub fn router() -> Router {
     Router::new()

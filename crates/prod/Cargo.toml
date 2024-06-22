@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+core-server = { path = "../core/" }
+mime_guess = "2.0"
+rust-embed = "8.4"
 
 [lints]
 workspace = true
