@@ -1,5 +1,6 @@
-//! Main entrypoint
+//! The shuttle runtime for the server
 
-fn main() {
-    println!("Hello, world!");
+#[shuttle_runtime::main]
+async fn main() -> shuttle_axum::ShuttleAxum {
+    Ok(prod_server::router().into())
 }

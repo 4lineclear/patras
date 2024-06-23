@@ -19,7 +19,7 @@ nursery = "deny"
 # wildcard_imports = "allow"
 
 [package]
-name = "backend"
+name = "patras-server"
 version = "0.0.0"
 edition = "2021"
 

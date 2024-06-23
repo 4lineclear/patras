@@ -1,9 +1,13 @@
 [package]
-name = "shuttle-server"
+name = "patras"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+prod-server = { path = "../prod/" }
+shuttle-axum = "0.46.0"
+shuttle-runtime = "0.46.0"
+tokio = "1.38"
 
 [lints]
 workspace = true

@@ -1,9 +1,46 @@
 //! Creates a prod binary
-// #![allow(clippy::wildcard_imports)]
 
+use core_server::axum::{
+    http::{header, StatusCode, Uri},
+    response::{Html, IntoResponse, Response},
+    Router,
+};
 use rust_embed::Embed;
 
 /// Production assets
 #[derive(Embed)]
-#[folder = "../../client/dist"]
+#[folder = "$CARGO_MANIFEST_DIR/../../client/dist"]
 pub struct Assets;
+
+/// Creates a production ready router
+pub fn router() -> Router {
+    core_server::router().fallback(static_handler)
+}
+
+static INDEX_HTML: &str = "index.html";
+
+async fn static_handler(uri: Uri) -> impl IntoResponse {
+    let path = uri.path().trim_start_matches('/');
+
+    if path.is_empty() || path == INDEX_HTML {
+        return index_html();
+    }
+
+    if let Some(content) = Assets::get(path) {
+        let mime = mime_guess::from_path(path).first_or_octet_stream();
+        ([(header::CONTENT_TYPE, mime.as_ref())], content.data).into_response()
+    } else {
+        index_html()
+    }
+}
+
+fn index_html() -> Response {
+    match Assets::get(INDEX_HTML) {
+        Some(content) => Html(content.data).into_response(),
+        None => not_found(),
+    }
+}
+
+fn not_found() -> Response {
+    (StatusCode::NOT_FOUND, "Server Error: 404").into_response()
+}

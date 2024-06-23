@@ -45,7 +45,7 @@ pub async fn signal() {
 
 /// Reads console
 ///
-/// Finishes once end command recieved.
+/// Finishes once quit command recieved.
 async fn read_console() -> anyhow::Result<()> {
     let stdin = async_std::io::stdin();
     let mut buf = String::new();
@@ -72,10 +72,13 @@ fn handle_console_input(s: &str) -> bool {
             press q + enter to quit\
             "
         ),
-        "o" => match webbrowser::open(concat!("http://localhost:", env!("CLIENT_PORT"))) {
-            Ok(()) => tracing::info!("Opening browser..."),
-            Err(_) => tracing::info!("Unable to open browser"),
-        },
+        "o" => {
+            if webbrowser::open(concat!("http://localhost:", env!("CLIENT_PORT"))).is_ok() {
+                tracing::info!("Opening browser...");
+            } else {
+                tracing::info!("Unable to open browser");
+            }
+        }
         "u" => println!("Local port: http://localhost:{}/", env!("SERVER_PORT")),
         "q" => return true,
         _ => (),
