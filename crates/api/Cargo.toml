@@ -1,0 +1,10 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+persist = { path = "../persist/" }
+
+[lints]
+workspace = true

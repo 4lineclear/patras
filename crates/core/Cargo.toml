@@ -4,6 +4,7 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
+api = { path = "../api/" }
 # Axum Server Deps ------------------------------------------------------------
 anyhow = "1.0"
 axum = { version = "0.7", features = ["macros"] }

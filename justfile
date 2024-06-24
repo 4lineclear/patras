@@ -4,13 +4,18 @@ dev:
     cargo run -p dev-server
 
 prod: build 
-    cargo build -p prod-server
+    cargo run -p prod-server
 
 shuttle: build
     cargo shuttle run -r
 
 build:
-    cd client && vite build
+    cd client && vite build && \
+    cd ../ && cargo build --all
+
+build-release:
+    cd client && vite build && \
+    cd ../ && cargo build --all --release
 
 # Run vite
 vite *ARGS:
