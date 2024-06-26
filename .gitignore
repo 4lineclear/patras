@@ -1,9 +1,8 @@
 /target
-/dist
 
 ./crates/shuttle/.shuttle-storage
-./crates/shuttle/Secrets*.toml
 
+Secrets*.toml
 *.env
 
 /client/node_modules

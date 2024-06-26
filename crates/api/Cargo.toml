@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-persist = { path = "../persist/" }
+derivative = "2.2"
+libreauth = "0.16"
+# persist = { path = "../persist/" }
 
 [lints]
 workspace = true
