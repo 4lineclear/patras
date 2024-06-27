@@ -13,8 +13,8 @@ use rust_embed::Embed;
 pub struct Assets;
 
 /// Creates a production ready router
-pub fn router() -> Router {
-    core_server::router().fallback(static_handler)
+pub async fn router() -> Router {
+    core_server::router().await.fallback(static_handler)
 }
 
 static INDEX_HTML: &str = "index.html";

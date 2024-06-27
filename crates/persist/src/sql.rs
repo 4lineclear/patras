@@ -11,7 +11,7 @@ macro_rules! sql {
 }
 
 sql!(
-    USERNAME_QUERY = "SELECT id FROM users WHERE username = $1",
+    // tables
     CREATE_TABLE = "\
         CREATE TABLE IF NOT EXISTS users (
             id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -19,4 +19,7 @@ sql!(
             password text NOT NULL
         );",
     DROP_TABLE = "DROP TABLE IF EXISTS users;",
+    // users
+    INSERT_USER = "INSERT INTO users (username, password) VALUES ($1. $2)",
+    USERNAME_QUERY = "SELECT id FROM users WHERE username = $1",
 );

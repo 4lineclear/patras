@@ -23,7 +23,7 @@ async fn main() -> Result<()> {
 ///
 /// Fails when either [`TcpListener`] or [`axum::serve()`] does
 pub async fn serve() -> Result<()> {
-    let router = router();
+    let router = router().await;
     let address = format!("127.0.0.1:{}", env!("SERVER_PORT"));
     let listener = TcpListener::bind(&address).await?;
 

@@ -68,6 +68,7 @@ version = "0.1.0"
 dependencies = [
  "derivative",
  "libreauth",
+ "trait-variant",
 ]
 
 [[package]]
@@ -624,6 +625,7 @@ dependencies = [
  "anyhow",
  "api",
  "axum 0.7.5",
+ "persist",
  "serde",
  "tokio",
  "tower",
@@ -1824,6 +1826,7 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 name = "persist"
 version = "0.1.0"
 dependencies = [
+ "api",
  "deadpool-postgres",
  "derivative",
  "dotenvy",
@@ -2998,6 +3001,17 @@ dependencies = [
  "tracing-core",
  "tracing-log",
  "tracing-serde",
+]
+
+[[package]]
+name = "trait-variant"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70977707304198400eb4835a78f6a9f928bf41bba420deb8fdb175cd965d77a7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.66",
 ]
 
 [[package]]

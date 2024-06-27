@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 derivative = "2.2"
 libreauth = "0.16"
+trait-variant = "0.1"
 # persist = { path = "../persist/" }
 
 [lints]

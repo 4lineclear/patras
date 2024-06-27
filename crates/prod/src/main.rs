@@ -9,7 +9,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     create_logging().context("Failed to read log env")?.init();
-    let router = prod_server::router();
+    let router = prod_server::router().await;
     let address = "127.0.0.1:3000";
     let listener = TcpListener::bind(&address).await?;
 

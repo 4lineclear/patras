@@ -20,7 +20,8 @@ pub use tracing;
 pub use tracing_subscriber;
 
 /// Creates the standard router
-pub fn router() -> Router {
+pub async fn router() -> Router {
+    let _ = persist::Database::new(None).await;
     Router::new().layer((
         CompressionLayer::new(),
         TraceLayer::new_for_http(),
