@@ -51,11 +51,12 @@ impl Database {
     /// # Errors
     ///
     /// See [`AddUserError`]
-    pub async fn add_user(&mut self, name: String, pass: String) -> Result<(), AddUserError> {
-        let pass = hash_password(&pass)?;
-        if self.auth.username_taken(&name).await.map_err(db_to_user)? {
+    pub async fn add_user(&mut self, name: &str, pass: &str) -> Result<(), AddUserError> {
+        let pass = hash_password(pass)?;
+        if self.auth.username_taken(name).await.map_err(db_to_user)? {
             return Err(AddUserError::UsernameTaken);
         }
+        self.auth.add_user(name, &pass).await.map_err(db_to_user)?;
         Ok(())
     }
 }
@@ -64,14 +65,6 @@ impl Database {
 async fn add_tables(pool: &Pool) -> Result<(), tokio_postgres::Error> {
     pool.get().await.unwrap().execute(CREATE_TABLE, &[]).await?;
     Ok(())
-}
-
-impl api::Database for Database {
-    type CE = ConnectionError;
-
-    async fn new(url: Option<String>) -> Result<Self, Self::CE> {
-        Self::new(url).await
-    }
 }
 
 #[derive(Derivative)]
@@ -106,20 +99,13 @@ impl AuthManager {
     /// Adds a user to the table
     ///
     /// The given pass is expected to be properly configured
-    async fn add_user(
-        &mut self,
-        name: &str,
-        pass: DbPassword,
-    ) -> Result<(), tokio_postgres::Error> {
+    async fn add_user(&mut self, name: &str, pass: &str) -> Result<(), tokio_postgres::Error> {
         self.manager
             .execute(&self.insert_user, &[&name, &pass])
             .await?;
         Ok(())
     }
 }
-
-/// A hashed, salted and db ready string password
-pub type DbPassword = String;
 
 /// Opens a connection pool
 fn open_pool(url: Option<String>) -> Result<Pool, ConnectionError> {

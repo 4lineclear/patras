@@ -1,50 +1,44 @@
 //! The actual api used by the core server
 
-use std::error::Error;
-
 use derivative::Derivative;
 use libreauth::pass::Hasher;
+use persist::{
+    error::{AddUserError, ConnectionError},
+    Database,
+};
+
+/// Handles persist
+pub mod persist;
 
 /// The central auth authority
 #[derive(Derivative)]
 #[derivative(Debug)]
-pub struct AuthSession<DB> {
-    database: DB,
+pub struct AuthSession {
+    database: Database,
     #[derivative(Debug = "ignore")]
     #[allow(dead_code)]
     hasher: Hasher,
 }
 
-impl<DB> AuthSession<DB>
-where
-    DB: Database,
-{
+impl AuthSession {
     /// Creates a new auth session
     ///
     /// # Errors
     ///
     /// Fails when [`Database::new`] does.
-    pub async fn new(url: Option<String>, hasher: Hasher) -> Result<Self, DB::CE> {
+    pub async fn new(url: Option<String>, hasher: Hasher) -> Result<Self, ConnectionError> {
         Ok(Self {
-            database: DB::new(url).await?,
+            database: Database::new(url).await?,
             hasher,
         })
     }
     /// Adds a user
-    pub async fn add_user(name: &str, pass: &str) -> Result<(), ()> {
-        todo!()
-        //
+    ///
+    /// # Errors
+    ///
+    /// Fails when [`Database::add_user`] does.
+    pub async fn add_user(&mut self, name: &str, pass: &str) -> Result<(), AddUserError> {
+        self.database.add_user(name, pass).await?;
+        Ok(())
     }
 }
-
-/// A database
-#[allow(async_fn_in_trait)]
-#[trait_variant::make(Send)]
-pub trait Database: core::fmt::Debug + Sized {
-    /// A connection error
-    type CE: Error;
-    /// Creates a new DB
-    async fn new(url: Option<String>) -> Result<Self, Self::CE>;
-}
-
-// TODO: everything

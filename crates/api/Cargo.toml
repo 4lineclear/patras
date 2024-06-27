@@ -7,7 +7,12 @@ edition = "2021"
 derivative = "2.2"
 libreauth = "0.16"
 trait-variant = "0.1"
-# persist = { path = "../persist/" }
+# persist
+dotenvy = "0.15"
+thiserror = "1.0"
+# DB
+deadpool-postgres = "0.14"
+tokio-postgres = "0.7"
 
 [lints]
 workspace = true
