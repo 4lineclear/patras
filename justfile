@@ -37,6 +37,10 @@ client-lint:
 cargo-lint:
     cargo checkmate
 
+# Run clippy on everything
+clippy:
+    cargo clippy --workspace --all-targets
+
 # Run a suite of cargo commands
 cargo-verbose:
     cargo check --workspace --verbose && \

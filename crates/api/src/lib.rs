@@ -2,10 +2,8 @@
 
 use derivative::Derivative;
 use libreauth::pass::Hasher;
-use persist::{
-    error::{AddUserError, ConnectionError},
-    Database,
-};
+use persist::{error::ConnectionError, AddUserAction, Database};
+use tokio_postgres::Error as PgError;
 
 /// Handles persist
 pub mod persist;
@@ -32,13 +30,13 @@ impl AuthSession {
             hasher,
         })
     }
+
     /// Adds a user
     ///
     /// # Errors
     ///
     /// Fails when [`Database::add_user`] does.
-    pub async fn add_user(&mut self, name: &str, pass: &str) -> Result<(), AddUserError> {
-        self.database.add_user(name, pass).await?;
-        Ok(())
+    pub async fn add_user(&mut self, name: &str, pass: &str) -> Result<AddUserAction, PgError> {
+        self.database.add_user(name, pass).await
     }
 }
