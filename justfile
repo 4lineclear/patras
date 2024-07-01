@@ -40,6 +40,9 @@ cargo-lint:
 # Run clippy on everything
 clippy:
     cargo clippy --workspace --all-targets
+# Run check on everything
+check:
+    cargo check --workspace --all-targets
 
 # Run a suite of cargo commands
 cargo-verbose:

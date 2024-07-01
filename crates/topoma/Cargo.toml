@@ -1,0 +1,19 @@
+[package]
+name = "topoma"
+version = "0.1.0"
+edition = "2021"
+description = "tokio-postres-macro"
+
+[dependencies]
+# macro stuff
+proc-macro2 = "1.0"
+syn = "2.0"
+quote = "1.0"
+# sql stuff
+sqlparser = "0.47"
+
+[lib]
+proc-macro = true
+
+[lints]
+workspace = true

@@ -6,10 +6,12 @@ use std::env::{self};
 
 use deadpool_postgres::{Config, GenericClient, Object, Pool, Runtime};
 use derivative::Derivative;
+use libreauth::pass::{HashBuilder, Hasher};
+use models::User;
 use sql::{CREATE_USER_TABLE, INSERT_USER, USERNAME_QUERY};
 use tokio_postgres::{Error as PgError, NoTls, Statement};
 
-use error::ConnectionError;
+use error::{ConnectionError, SignUpError};
 use uuid::Uuid;
 
 /// Auto generated schema
@@ -62,20 +64,52 @@ impl Database {
     ///
     /// # Errors
     ///
-    /// See [`AddUserError`]
-    pub async fn add_user(&mut self, name: &str, pass: &str) -> Result<AddUserAction, PgError> {
-        let pass = match hash_password(pass) {
-            Ok(p) => p,
-            Err(ip) => return Ok(AddUserAction::InvalidPassword(ip)),
+    /// Fails when the database does
+    pub async fn sign_up(
+        &mut self,
+        name: &str,
+        pass: &str,
+        hasher: &Hasher,
+    ) -> Result<SignUpAction, SignUpError> {
+        use libreauth::pass::Error::*;
+        let pass = match hasher.hash(pass) {
+            Ok(s) => s,
+            Err(PasswordTooLong { .. } | PasswordTooShort { .. }) => {
+                return Ok(SignUpAction::InvalidPassword)
+            }
+            Err(InvalidPasswordFormat) => return Err(SignUpError::HashError),
         };
         if self.username_taken(name).await? {
-            return Ok(AddUserAction::UsernameTaken);
+            return Ok(SignUpAction::UsernameTaken);
         }
-        self.auth_conn
-            .execute(&self.statements.insert_user, &[&name, &pass])
+        let row = self
+            .auth_conn
+            .query_one(&self.statements.insert_user, &[&name, &pass])
             .await?;
-        todo!()
-        // Ok(AddUserAction::UserAdded())
+        Ok(SignUpAction::UserAdded(row.get(1)))
+    }
+
+    /// Tries to login with the given username & pass
+    ///
+    /// # Errors
+    ///
+    /// Fails when the database does
+    pub async fn login(&mut self, name: &str, pass: &str) -> Result<LoginAction, PgError> {
+        let Some(user) = self
+            .auth_conn
+            .query_opt(&self.statements.username_taken, &[&name])
+            .await?
+            .map(User::from)
+        else {
+            return Ok(LoginAction::UsernameNotFound);
+        };
+
+        match HashBuilder::from_phc(&user.password) {
+            Ok(h) if h.is_valid(pass) => (),
+            Ok(_) => return Ok(LoginAction::IncorrectPassword),
+            Err(_e) => todo!(),
+        }
+        Ok(LoginAction::LoggedIn(user.uuid))
     }
 
     async fn username_taken(&mut self, name: &str) -> Result<bool, PgError> {
@@ -88,13 +122,38 @@ impl Database {
 
 /// The result of adding a user
 #[derive(Debug)]
-pub enum AddUserAction {
+pub enum SignUpAction {
     /// username was taken
     UsernameTaken,
     /// given password was invalid
-    InvalidPassword(InvalidPassword),
+    InvalidPassword,
     /// user added successfully
     UserAdded(Uuid),
+}
+
+/// The result of logging in a user
+#[derive(Debug)]
+pub enum LoginAction {
+    /// Username not found
+    UsernameNotFound,
+    /// given password was incorrect
+    IncorrectPassword,
+    /// Password is shorter than the allowed min
+    TooShort {
+        /// the given length
+        actual: usize,
+        /// the min length
+        min: usize,
+    },
+    /// Password is longer than the allowed max
+    TooLong {
+        /// the given length
+        actual: usize,
+        /// the max length
+        max: usize,
+    },
+    /// logged in
+    LoggedIn(Uuid),
 }
 
 /// Adds the required tables
@@ -137,16 +196,13 @@ fn open_pool(url: Option<String>) -> Result<Pool, ConnectionError> {
     .create_pool(Some(Runtime::Tokio1), NoTls)?)
 }
 
-/// Hashes the given password
-fn hash_password(_password: &str) -> Result<String, InvalidPassword> {
-    todo!()
-}
-
-/// The result of adding a password
+/// The result of hashing a password
 #[derive(Debug)]
-pub enum InvalidPassword {
+pub enum HashAction {
+    /// The hashed + salted password
+    Hashed(String),
     /// Password is shorter than the allowed min
-    TooShort(usize),
+    TooShort,
     /// Password is longer than the allowed max
-    TooLong(usize),
+    TooLong,
 }
