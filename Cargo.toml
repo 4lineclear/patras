@@ -1,4 +1,6 @@
 [workspace]
+# # when developing macro, excluding makes recompilation easy
+# exclude = ["crates/topoma/"]
 members = ["crates/*"]
 
 [workspace.lints.rust]
