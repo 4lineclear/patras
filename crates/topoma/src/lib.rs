@@ -1,23 +1,39 @@
 //! tokio-postgres-macro
 
-use parse::SqlMonolith;
+use parse::{SqlMonolith, SqlUnit};
 use proc_macro::TokenStream;
 use syn::parse_macro_input;
 
 /// Parses the tokenstream
 pub(crate) mod parse;
-/// Transforms the parse tokens back into tokens
-pub(crate) mod sql;
 
-/// Create postgres macros
+/// Does simple validation on the given sql statements
+///
+/// # Syntax
+///
+/// A custom syntax is provided:
+///
+/// ```ignore
+/// # fn main() {
+/// topoma! [
+///     "Comment which retains fromatting within the macro",
+///     $STATEMENT_NAME_ONE >> r"$SQL",
+///     /// Another comment which breaks rust formatting within the macro
+///     $STATEMENT_NAME_TWO << "$PATH_TO_FILE",
+///     // ...
+/// ];
+/// # }
+///
+/// `$SQL` refers to an sql file in the string,
+///
+/// `$PATH_TO_FILE` refers to an sql file's path relative to `CARGO_MANIFEST_DIR`,
+/// ```
 #[proc_macro]
 pub fn topoma(input: TokenStream) -> TokenStream {
-    let sql = parse_macro_input!(input as SqlMonolith);
-    [sql.table.to_tokens(), sql.drop.to_tokens()]
+    parse_macro_input!(input as SqlMonolith)
+        .statements
         .into_iter()
-        .chain(sql.queries.into_iter().map(|s| s.to_tokens()))
+        .map(SqlUnit::into_tokens)
         .collect::<proc_macro2::TokenStream>()
         .into()
 }
-
-// TODO: Everything

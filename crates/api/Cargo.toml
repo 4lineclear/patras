@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-argon2 = "0.5"
+# argon2 = "0.5"
 derivative = "2.2"
 libreauth = "0.16"
 # trait-variant = "0.1"

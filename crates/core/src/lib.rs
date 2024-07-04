@@ -22,7 +22,12 @@ pub use tracing_subscriber;
 /// Creates the standard router
 #[allow(clippy::unused_async)]
 pub async fn router() -> Router {
-    // auth::AuthSession::new(None, hasher).await.unwrap();
+    api::AuthSession::new(
+        None,
+        api::libreauth::pass::HashBuilder::new().finalize().unwrap(),
+    )
+    .await
+    .unwrap();
     Router::new().layer((
         CompressionLayer::new(),
         TraceLayer::new_for_http(),

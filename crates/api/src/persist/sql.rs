@@ -1,6 +1,7 @@
 use topoma::topoma;
 
 topoma![
+    #[doc = "Creates the users table"]
     CREATE_USER_TABLE
         >> r"
 CREATE TABLE IF NOT EXISTS users (
@@ -12,7 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
 ",
     DROP_USER_TABLE
         >> r"
-DROP TABLE IF EXISTS users",
+DROP TABLE IF EXISTS users
+",
     INSERT_USER
         >> r"
 INSERT INTO
@@ -30,7 +32,7 @@ FROM
   users
 WHERE
   username = $1
-",
+"
 ];
 
 // TODO: add a way to add documentation

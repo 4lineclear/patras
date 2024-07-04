@@ -8,6 +8,8 @@ use persist::{
 };
 use tokio_postgres::Error as PgError;
 
+pub use libreauth;
+
 /// Handles persist
 pub mod persist;
 
