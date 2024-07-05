@@ -13,7 +13,7 @@ export default defineConfig(({ command }) => {
 });
 
 function serve(): UserConfig {
-  const opts = TOML.parse(fs.readFileSync("../opts.toml").toString());
+  const opts = TOML.parse(fs.readFileSync("../env.toml").toString());
   const ports = getPorts(opts)!;
 
   return {

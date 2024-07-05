@@ -31,7 +31,7 @@ impl AuthSession {
     /// # Errors
     ///
     /// Fails when [`Database::new`] does.
-    pub async fn new(url: Option<String>, hasher: Hasher) -> Result<Self, ConnectionError> {
+    pub async fn new(url: String, hasher: Hasher) -> Result<Self, ConnectionError> {
         Ok(Self {
             database: Database::new(url).await?,
             hasher,

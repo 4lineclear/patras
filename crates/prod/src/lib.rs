@@ -10,8 +10,6 @@ use core_server::{
 };
 use rust_embed::Embed;
 
-pub use core_server;
-
 // TODO: add tls
 // https://github.com/tokio-rs/axum/blob/main/examples/tls-rustls/src/main.rs
 
@@ -25,8 +23,8 @@ pub struct Assets;
 /// # Errors
 ///
 /// See [`core_server::router`]
-pub async fn router() -> Result<Router, CreateRouterError> {
-    Ok(core_server::router().await?.fallback(static_handler))
+pub async fn router(url: String) -> Result<Router, CreateRouterError> {
+    Ok(core_server::router(url).await?.fallback(static_handler))
 }
 
 static INDEX_HTML: &str = "index.html";

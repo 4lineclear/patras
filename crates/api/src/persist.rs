@@ -2,8 +2,6 @@
 #![allow(clippy::wildcard_imports)]
 #![allow(clippy::enum_glob_use)]
 
-use std::env::{self};
-
 use deadpool_postgres::{Config, GenericClient, Object, Pool, Runtime};
 use derivative::Derivative;
 use libreauth::pass::{HashBuilder, Hasher};
@@ -38,18 +36,8 @@ pub struct Database {
     auth_conn: Object,
 }
 
-/// The default path where an env file is read
-pub const DEFAULT_ENV_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/.env");
-
 /// Opens a connection pool
-async fn open_pool(url: Option<String>) -> Result<Pool, ConnectionError> {
-    let url = match url {
-        Some(s) => s,
-        None => {
-            dotenvy::from_path(DEFAULT_ENV_PATH)?;
-            env::var("DATABASE_URL")?
-        }
-    };
+async fn open_pool(url: String) -> Result<Pool, ConnectionError> {
     let pool = (Config {
         url: Some(url),
         ..Default::default()
@@ -68,7 +56,7 @@ impl Database {
     /// # Errors
     ///
     /// See [`ConnectionError`]
-    pub async fn new(url: Option<String>) -> Result<Self, ConnectionError> {
+    pub async fn new(url: String) -> Result<Self, ConnectionError> {
         let pool = open_pool(url).await?;
         let auth_conn = pool.get().await?;
         let statements = Statements::new(&auth_conn).await?;

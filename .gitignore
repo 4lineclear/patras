@@ -4,6 +4,7 @@
 
 Secrets*.toml
 *.env
+/env.toml
 
 /client/node_modules
 /client/dist

@@ -11,6 +11,7 @@ use api::{
 
 use axum::{
     extract::State,
+    http::StatusCode,
     routing::{delete, post},
     Json, Router,
 };
@@ -36,9 +37,9 @@ pub use tracing_subscriber;
 /// # Errors
 ///
 /// TODO: errors
-pub async fn router() -> Result<Router, CreateRouterError> {
+pub async fn router(url: String) -> Result<Router, CreateRouterError> {
     let api = Api {
-        auth: AuthSession::new(None, HashBuilder::new().finalize()?)
+        auth: AuthSession::new(url, HashBuilder::new().finalize()?)
             .await?
             .into(),
     };
@@ -67,9 +68,10 @@ pub enum CreateRouterError {
     HashError(#[from] HashError),
 }
 
-async fn sign_up(State(api): State<Api>, info: Json<UserInfo>) {
-    // TODO: error handling
-    let _ = api.auth.sign_up(&info.name, &info.pass).await;
+type SignUpResponse = (StatusCode, ());
+
+async fn sign_up(State(api): State<Api>, info: Json<UserInfo>) -> SignUpResponse {
+    api.sign_up(&info).await
 }
 
 async fn log_in(State(_api): State<Api>) {}
@@ -86,6 +88,16 @@ struct UserInfo {
 #[derive(Debug, Clone)]
 pub struct Api {
     auth: Arc<AuthSession>,
+}
+
+impl Api {
+    async fn sign_up(&self, info: &UserInfo) -> SignUpResponse {
+        // TODO: error handling
+        match self.auth.sign_up(&info.name, &info.pass).await {
+            Ok(_) => (StatusCode::OK, ()),
+            Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, ()),
+        }
+    }
 }
 
 /// Creates a logging object

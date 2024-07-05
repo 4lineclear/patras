@@ -9,7 +9,6 @@ derivative = "2.2"
 # pass
 libreauth = "0.16"
 # persist
-dotenvy = "0.15"
 thiserror = "1.0"
 # DB
 deadpool-postgres = "0.14"
