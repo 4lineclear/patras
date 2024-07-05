@@ -7,7 +7,6 @@ edition = "2021"
 prod-server = { path = "../prod/" }
 shuttle-axum = "0.46.0"
 shuttle-runtime = "0.46.0"
-tokio = "1.38"
 
 [lints]
 workspace = true

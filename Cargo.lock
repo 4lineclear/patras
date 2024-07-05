@@ -1804,7 +1804,6 @@ dependencies = [
  "prod-server",
  "shuttle-axum",
  "shuttle-runtime",
- "tokio",
 ]
 
 [[package]]

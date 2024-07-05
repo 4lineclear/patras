@@ -35,4 +35,6 @@ WHERE
 "
 ];
 
-// TODO: add a way to add documentation
+// TODO:
+// add string literal documentation, rather than attributes.
+// add statement struct generation

@@ -1,14 +1,16 @@
 //! The actual api used by the core server
+#![allow(clippy::single_match_else)]
 
 use derivative::Derivative;
 use libreauth::pass::Hasher;
 use persist::{
-    error::{ConnectionError, SignUpError},
+    error::{ConnectionError, LoginError, SignUpError},
     Database, LoginAction, SignUpAction,
 };
-use tokio_postgres::Error as PgError;
+// use tokio_postgres::Error as PgError;
 
 pub use libreauth;
+pub use thiserror;
 
 /// Handles persist
 pub mod persist;
@@ -41,7 +43,7 @@ impl AuthSession {
     /// # Errors
     ///
     /// Fails when [`Database::add_user`] does.
-    pub async fn sign_up(&mut self, name: &str, pass: &str) -> Result<SignUpAction, SignUpError> {
+    pub async fn sign_up(&self, name: &str, pass: &str) -> Result<SignUpAction, SignUpError> {
         self.database.sign_up(name, pass, &self.hasher).await
     }
 
@@ -50,7 +52,7 @@ impl AuthSession {
     /// # Errors
     ///
     /// Fails when the database does
-    pub async fn login(&mut self, name: &str, pass: &str) -> Result<LoginAction, PgError> {
+    pub async fn login(&self, name: &str, pass: &str) -> Result<LoginAction, LoginError> {
         self.database.login(name, pass).await
     }
 }

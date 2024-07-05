@@ -33,3 +33,14 @@ pub enum SignUpError {
     #[error(transparent)]
     Postgres(#[from] tokio_postgres::Error),
 }
+
+/// An error encountered while trying log in a user
+#[derive(Error, Debug)]
+pub enum LoginError {
+    /// An error ran into while hashing the given password
+    #[error("Unable to hash given password")]
+    HashError,
+    /// An error communicating with the Postgres server.
+    #[error(transparent)]
+    Postgres(#[from] tokio_postgres::Error),
+}

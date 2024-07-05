@@ -11,14 +11,13 @@ use models::User;
 use sql::{CREATE_USER_TABLE, INSERT_USER, USERNAME_QUERY};
 use tokio_postgres::{Error as PgError, NoTls, Statement};
 
-use error::{ConnectionError, SignUpError};
+use error::{ConnectionError, LoginError, SignUpError};
 use uuid::Uuid;
 
 /// Auto generated schema
 pub mod models;
 
 /// Holds some queries
-#[allow(dead_code)]
 pub(crate) mod sql;
 
 /// Errors
@@ -39,6 +38,28 @@ pub struct Database {
     auth_conn: Object,
 }
 
+/// The default path where an env file is read
+pub const DEFAULT_ENV_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/.env");
+
+/// Opens a connection pool
+async fn open_pool(url: Option<String>) -> Result<Pool, ConnectionError> {
+    let url = match url {
+        Some(s) => s,
+        None => {
+            dotenvy::from_path(DEFAULT_ENV_PATH)?;
+            env::var("DATABASE_URL")?
+        }
+    };
+    let pool = (Config {
+        url: Some(url),
+        ..Default::default()
+    })
+    .create_pool(Some(Runtime::Tokio1), NoTls)?;
+
+    pool.get().await?.execute(CREATE_USER_TABLE, &[]).await?;
+    Ok(pool)
+}
+
 impl Database {
     /// Creates a new database with the given db url
     ///
@@ -48,10 +69,9 @@ impl Database {
     ///
     /// See [`ConnectionError`]
     pub async fn new(url: Option<String>) -> Result<Self, ConnectionError> {
-        let pool = open_pool(url)?;
+        let pool = open_pool(url).await?;
         let auth_conn = pool.get().await?;
         let statements = Statements::new(&auth_conn).await?;
-        add_tables(&pool).await?;
 
         Ok(Self {
             pool,
@@ -66,12 +86,13 @@ impl Database {
     ///
     /// Fails when the database does
     pub async fn sign_up(
-        &mut self,
+        &self,
         name: &str,
         pass: &str,
         hasher: &Hasher,
     ) -> Result<SignUpAction, SignUpError> {
         use libreauth::pass::Error::*;
+
         let pass = match hasher.hash(pass) {
             Ok(s) => s,
             Err(PasswordTooLong { .. } | PasswordTooShort { .. }) => {
@@ -94,7 +115,8 @@ impl Database {
     /// # Errors
     ///
     /// Fails when the database does
-    pub async fn login(&mut self, name: &str, pass: &str) -> Result<LoginAction, PgError> {
+    pub async fn login(&self, name: &str, pass: &str) -> Result<LoginAction, LoginError> {
+        use libreauth::pass::Error::*;
         let Some(user) = self
             .auth_conn
             .query_opt(&self.statements.username_taken, &[&name])
@@ -107,12 +129,15 @@ impl Database {
         match HashBuilder::from_phc(&user.password) {
             Ok(h) if h.is_valid(pass) => (),
             Ok(_) => return Ok(LoginAction::IncorrectPassword),
-            Err(_e) => todo!(),
+            Err(PasswordTooShort { .. } | PasswordTooLong { .. }) => {
+                return Ok(LoginAction::IncorrectPassword)
+            }
+            Err(InvalidPasswordFormat) => return Err(LoginError::HashError),
         }
         Ok(LoginAction::LoggedIn(user.uuid))
     }
 
-    async fn username_taken(&mut self, name: &str) -> Result<bool, PgError> {
+    async fn username_taken(&self, name: &str) -> Result<bool, PgError> {
         self.auth_conn
             .query_opt(&self.statements.username_taken, &[&name])
             .await
@@ -138,34 +163,11 @@ pub enum LoginAction {
     UsernameNotFound,
     /// given password was incorrect
     IncorrectPassword,
-    /// Password is shorter than the allowed min
-    TooShort {
-        /// the given length
-        actual: usize,
-        /// the min length
-        min: usize,
-    },
-    /// Password is longer than the allowed max
-    TooLong {
-        /// the given length
-        actual: usize,
-        /// the max length
-        max: usize,
-    },
     /// logged in
     LoggedIn(Uuid),
 }
 
 /// Adds the required tables
-async fn add_tables(pool: &Pool) -> Result<(), PgError> {
-    pool.get()
-        .await
-        .unwrap()
-        .batch_execute(CREATE_USER_TABLE)
-        .await?;
-    Ok(())
-}
-
 /// Holds all premade statements
 struct Statements {
     username_taken: Statement,
@@ -181,19 +183,6 @@ impl Statements {
             insert_user,
         })
     }
-}
-
-/// The default path where an env file is read
-pub const DEFAULT_ENV_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/.env");
-
-/// Opens a connection pool
-fn open_pool(url: Option<String>) -> Result<Pool, ConnectionError> {
-    dotenvy::from_path(DEFAULT_ENV_PATH)?;
-    Ok((Config {
-        url: Some(dbg!(url.unwrap_or(env::var("DATABASE_URL")?))),
-        ..Default::default()
-    })
-    .create_pool(Some(Runtime::Tokio1), NoTls)?)
 }
 
 /// The result of hashing a password

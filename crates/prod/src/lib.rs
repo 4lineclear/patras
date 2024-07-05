@@ -1,11 +1,19 @@
 //! Creates a prod binary
 
-use core_server::axum::{
-    http::{header, StatusCode, Uri},
-    response::{Html, IntoResponse, Response},
-    Router,
+use core_server::{
+    axum::{
+        http::{header, StatusCode, Uri},
+        response::{Html, IntoResponse, Response},
+        Router,
+    },
+    CreateRouterError,
 };
 use rust_embed::Embed;
+
+pub use core_server;
+
+// TODO: add tls
+// https://github.com/tokio-rs/axum/blob/main/examples/tls-rustls/src/main.rs
 
 /// Production assets
 #[derive(Embed)]
@@ -13,8 +21,12 @@ use rust_embed::Embed;
 pub struct Assets;
 
 /// Creates a production ready router
-pub async fn router() -> Router {
-    core_server::router().await.fallback(static_handler)
+///
+/// # Errors
+///
+/// See [`core_server::router`]
+pub async fn router() -> Result<Router, CreateRouterError> {
+    Ok(core_server::router().await?.fallback(static_handler))
 }
 
 static INDEX_HTML: &str = "index.html";

@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# argon2 = "0.5"
+# etc
 derivative = "2.2"
+# pass
 libreauth = "0.16"
-# trait-variant = "0.1"
 # persist
 dotenvy = "0.15"
 thiserror = "1.0"

@@ -1,8 +1,20 @@
 //! The core server implementations
 
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
-use axum::Router;
+use api::{
+    libreauth::pass::{Error as HashError, HashBuilder},
+    persist::error::ConnectionError,
+    thiserror::{self, Error},
+    AuthSession,
+};
+
+use axum::{
+    extract::State,
+    routing::{delete, post},
+    Json, Router,
+};
+use serde::Deserialize;
 use tower_http::{
     catch_panic::CatchPanicLayer, compression::CompressionLayer, timeout::TimeoutLayer,
     trace::TraceLayer,
@@ -20,20 +32,60 @@ pub use tracing;
 pub use tracing_subscriber;
 
 /// Creates the standard router
-#[allow(clippy::unused_async)]
-pub async fn router() -> Router {
-    api::AuthSession::new(
-        None,
-        api::libreauth::pass::HashBuilder::new().finalize().unwrap(),
-    )
-    .await
-    .unwrap();
-    Router::new().layer((
-        CompressionLayer::new(),
-        TraceLayer::new_for_http(),
-        TimeoutLayer::new(Duration::from_secs(4)),
-        CatchPanicLayer::new(),
-    ))
+///
+/// # Errors
+///
+/// TODO: errors
+pub async fn router() -> Result<Router, CreateRouterError> {
+    let api = Api {
+        auth: AuthSession::new(None, HashBuilder::new().finalize()?)
+            .await?
+            .into(),
+    };
+
+    Ok(Router::new()
+        .layer((
+            CompressionLayer::new(),
+            TraceLayer::new_for_http(),
+            TimeoutLayer::new(Duration::from_secs(4)),
+            CatchPanicLayer::new(),
+        ))
+        .route("/sign-up", post(sign_up))
+        .route("/log-in", post(log_in))
+        .route("/log-out", delete(log_out))
+        .with_state(api))
+}
+
+/// an error while creating the router
+#[derive(Debug, Error)]
+pub enum CreateRouterError {
+    /// db connection/setup error
+    #[error(transparent)]
+    ConnectionError(#[from] ConnectionError),
+    /// db connection/setup error
+    #[error(transparent)]
+    HashError(#[from] HashError),
+}
+
+async fn sign_up(State(api): State<Api>, info: Json<UserInfo>) {
+    // TODO: error handling
+    let _ = api.auth.sign_up(&info.name, &info.pass).await;
+}
+
+async fn log_in(State(_api): State<Api>) {}
+
+async fn log_out(State(_api): State<Api>) {}
+
+#[derive(Debug, Deserialize)]
+struct UserInfo {
+    name: String,
+    pass: String,
+}
+
+/// The state of the router
+#[derive(Debug, Clone)]
+pub struct Api {
+    auth: Arc<AuthSession>,
 }
 
 /// Creates a logging object
