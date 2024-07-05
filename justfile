@@ -2,10 +2,6 @@ export PATH := "./node_modules/.bin:" + env_var('PATH')
 
 dev: 
     cd ./crates/dev/ && cargo run
-watch: 
-    cd ./crates/dev/ && systemfd --no-pid -s http::8000 -- \
-    cargo watch -x run
-# TODO: move back to using an env file
 
 prod: build 
     cargo run -p prod-server

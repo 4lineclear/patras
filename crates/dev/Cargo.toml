@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 async-std = "1.12"
 core-server = { path = "../core/" }
-listenfd = "1.0"
 webbrowser = "1.0"
 
 [build-dependencies]
