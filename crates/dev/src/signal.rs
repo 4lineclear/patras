@@ -66,10 +66,11 @@ fn handle_console_input(s: &str) -> bool {
     match s {
         "h" => println!(
             "\
-            press h + enter to show help(this text)\n\
-            press o + enter to open client in browser\n\
-            press u + enter to show server url\n\
-            press q + enter to quit\
+            enter h to show help(this text)\n\
+            enter o to open client in browser\n\
+            enter u to show server url\n\
+            enter c clear screen\n\
+            enter q to quit\
             "
         ),
         "o" => {
@@ -78,6 +79,10 @@ fn handle_console_input(s: &str) -> bool {
             } else {
                 tracing::info!("Unable to open browser");
             }
+        }
+        "c" => {
+            print!("\x1B[2J\x1B[1;1H");
+            let _ = std::io::Write::flush(&mut std::io::stdout());
         }
         "u" => println!("Local port: http://localhost:{}/", env!("SERVER_PORT")),
         "q" => return true,

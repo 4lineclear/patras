@@ -1,4 +1,3 @@
-
 const PageNotFound = () => (
   <div id="page-not-found">
     <span id="page-not-found-title-big">Error 404</span>
@@ -6,4 +5,4 @@ const PageNotFound = () => (
   </div>
 );
 
-export default PageNotFound
+export default PageNotFound;

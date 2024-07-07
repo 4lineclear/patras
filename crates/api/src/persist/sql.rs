@@ -38,3 +38,4 @@ WHERE
 // TODO:
 // add string literal documentation, rather than attributes.
 // add statement struct generation
+// add syntax "<< $item as $type"

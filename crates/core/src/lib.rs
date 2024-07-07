@@ -4,7 +4,7 @@ use std::{sync::Arc, time::Duration};
 
 use api::{
     libreauth::pass::{Error as HashError, HashBuilder},
-    persist::error::ConnectionError,
+    persist::{error::ConnectionError, SignUpAction},
     thiserror::{self, Error},
     AuthSession,
 };
@@ -51,9 +51,9 @@ pub async fn router(url: String) -> Result<Router, CreateRouterError> {
             TimeoutLayer::new(Duration::from_secs(4)),
             CatchPanicLayer::new(),
         ))
-        .route("/sign-up", post(sign_up))
-        .route("/log-in", post(log_in))
-        .route("/log-out", delete(log_out))
+        .route("/req-sign-up", post(sign_up))
+        .route("/req-log-in", post(log_in))
+        .route("/req-log-out", delete(log_out))
         .with_state(api))
 }
 
@@ -80,8 +80,8 @@ async fn log_out(State(_api): State<Api>) {}
 
 #[derive(Debug, Deserialize)]
 struct UserInfo {
-    name: String,
-    pass: String,
+    username: String,
+    password: String,
 }
 
 /// The state of the router
@@ -92,9 +92,14 @@ pub struct Api {
 
 impl Api {
     async fn sign_up(&self, info: &UserInfo) -> SignUpResponse {
+        use SignUpAction::*;
+        tracing::info!("Adding user: {info:?}");
+
         // TODO: error handling
-        match self.auth.sign_up(&info.name, &info.pass).await {
-            Ok(_) => (StatusCode::OK, ()),
+        match self.auth.sign_up(&info.username, &info.password).await {
+            Ok(UsernameTaken) => (StatusCode::OK, ()),
+            Ok(InvalidPassword) => (StatusCode::OK, ()),
+            Ok(UserAdded(_)) => (StatusCode::OK, ()),
             Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, ()),
         }
     }
@@ -113,6 +118,7 @@ pub fn create_logging() -> Result<impl SubscriberInitExt + SubscriberExt, FromEn
     let fitler_layer = EnvFilter::builder()
         .with_default_directive(LevelFilter::OFF.into())
         .from_env()?
+        .add_directive("axum=trace".parse().unwrap())
         .add_directive("core_server=trace".parse().unwrap())
         .add_directive("dev_server=trace".parse().unwrap())
         .add_directive("tower_http=trace".parse().unwrap());

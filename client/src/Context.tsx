@@ -1,5 +1,5 @@
 const Context = {
-  logged_in: false
-}
+  logged_in: false,
+};
 
-export default Context
+export default Context;

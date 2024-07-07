@@ -17,7 +17,7 @@ fn run() -> anyhow::Result<()> {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed={ENV_PATH}");
     let env_text = fs::read_to_string(ENV_PATH).context("Failed to read env.toml")?;
-    let env = toml::from_str::<Table>(&env_text).context("Failed to parse env.toml")?;
+    let env: Table = toml::from_str(&env_text).context("Failed to parse env.toml")?;
 
     let server_port = env["dev"]["ports"]["server"]
         .as_integer()

@@ -1,11 +1,10 @@
 // font -----------------------------------------------------------------------
-@import url('https://fonts.googleapis.com/css2?family=Mate:ital@0;1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Mate:ital@0;1&display=swap");
 
 @mixin mate-regular {
   font-family: "Mate", serif;
   font-weight: 400;
   font-style: normal;
-  
 }
 @mixin mate-regular-italic {
   font-family: "Mate", serif;
@@ -13,12 +12,16 @@
   font-style: italic;
 }
 
-p, li {
+p,
+li {
   font-size: 1.3rem;
 }
 
 // root -----------------------------------------------------------------------
-html, body, #root, #app {
+html,
+body,
+#root,
+#app {
   @include mate-regular;
   margin: 0;
   padding: 0;
@@ -68,7 +71,7 @@ header {
   color: black;
   margin: 1rem;
 }
-.header-link-container a{
+.header-link-container a {
   text-decoration: none;
 }
 .header-link-text {
@@ -78,11 +81,9 @@ header {
 
 // index ----------------------------------------------------------------------
 #index {
-  margin-left: 2vw
+  margin-left: 2vw;
 }
 
 // login-----------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------
-
-

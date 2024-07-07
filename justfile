@@ -25,6 +25,14 @@ vite *ARGS:
 npm *ARGS:
     cd client && npm {{ARGS}}
 
+# Run npx
+npx *ARGS:
+    cd client && npx {{ARGS}}
+
+# Run npx
+prettier *ARGS:
+    cd client && npx prettier . --write
+
 lint: client-lint cargo-lint
 
 # Lint Client 
