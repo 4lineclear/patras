@@ -16,6 +16,7 @@ fn main() {
 fn run() -> anyhow::Result<()> {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed={ENV_PATH}");
+
     let env_text = fs::read_to_string(ENV_PATH).context("Failed to read env.toml")?;
     let env: Table = toml::from_str(&env_text).context("Failed to parse env.toml")?;
 
@@ -36,5 +37,6 @@ fn run() -> anyhow::Result<()> {
     println!("cargo:rustc-env=SERVER_PORT={server_port}");
     println!("cargo:rustc-env=CLIENT_PORT={client_port}");
     println!("cargo:rustc-env=DATABASE_URL={db_url}");
+
     Ok(())
 }

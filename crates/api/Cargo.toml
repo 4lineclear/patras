@@ -16,5 +16,9 @@ tokio-postgres = { version = "0.7", features = ["with-uuid-1"] }
 topoma = { path = "../topoma/" }
 uuid = "1.9"
 
+[build-dependencies]
+anyhow = "1.0"
+toml = "0.8"
+
 [lints]
 workspace = true
