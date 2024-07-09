@@ -2,15 +2,19 @@
 #![allow(clippy::wildcard_imports)]
 #![allow(clippy::enum_glob_use)]
 
-use deadpool_postgres::{Config, GenericClient, Object, Pool, Runtime};
+use auth::Auth;
+use deadpool_postgres::{Config, GenericClient, Pool, Runtime};
 use derivative::Derivative;
-use libreauth::pass::{HashBuilder, Hasher};
+use libreauth::pass::Hasher;
 use models::User;
-use sql::{CREATE_USER_TABLE, INSERT_USER, USERNAME_QUERY};
-use tokio_postgres::{Error as PgError, NoTls, Statement};
+use sql::CREATE_USER_TABLE;
+use tokio_postgres::{Error as PgError, NoTls};
 
 use error::{ConnectionError, LoginError, SignUpError};
 use uuid::Uuid;
+
+/// Handles auth
+pub mod auth;
 
 /// Auto generated schema
 pub mod models;
@@ -27,17 +31,15 @@ pub mod error;
 #[derivative(Debug)]
 pub struct Database {
     /// A pool of database conenctions
-    #[allow(dead_code)]
     pool: Pool,
-    /// Statements to be used with `auth_conn`
-    #[derivative(Debug = "ignore")]
-    statements: Statements,
-    /// A db connection for auth queries
-    auth_conn: Object,
+    auth: Auth,
 }
+
+// TODO: add password checker, rather than go through libreauth directly
 
 /// Opens a connection pool
 async fn open_pool(url: String) -> Result<Pool, ConnectionError> {
+    // TODO: add tls
     let pool = (Config {
         url: Some(url),
         ..Default::default()
@@ -56,16 +58,12 @@ impl Database {
     /// # Errors
     ///
     /// See [`ConnectionError`]
-    pub async fn new(url: String) -> Result<Self, ConnectionError> {
+    pub async fn new(url: String, hasher: Hasher) -> Result<Self, ConnectionError> {
         let pool = open_pool(url).await?;
-        let auth_conn = pool.get().await?;
-        let statements = Statements::new(&auth_conn).await?;
+        let conn = pool.get().await?;
+        let auth = Auth::new(hasher, conn).await?;
 
-        Ok(Self {
-            pool,
-            statements,
-            auth_conn,
-        })
+        Ok(Self { pool, auth })
     }
 
     /// Tries to add a user
@@ -75,27 +73,25 @@ impl Database {
     /// Fails when the database does
     pub async fn sign_up(
         &self,
-        name: &str,
-        pass: &str,
-        hasher: &Hasher,
+        username: &str,
+        password: &str,
     ) -> Result<SignUpAction, SignUpError> {
-        use libreauth::pass::Error::*;
-
-        let pass = match hasher.hash(pass) {
-            Ok(s) => s,
-            Err(PasswordTooLong { .. } | PasswordTooShort { .. }) => {
-                return Ok(SignUpAction::InvalidPassword)
-            }
-            Err(InvalidPasswordFormat) => return Err(SignUpError::HashError),
+        let Some(pass) = self.auth.hash(password) else {
+            return Ok(SignUpAction::InvalidPassword);
         };
-        if self.username_taken(name).await? {
+
+        if self.username_taken(username).await? {
             return Ok(SignUpAction::UsernameTaken);
         }
-        let row = self
-            .auth_conn
-            .query_one(&self.statements.insert_user, &[&name, &pass])
-            .await?;
-        Ok(SignUpAction::UserAdded(row.get(1)))
+
+        let uuid = Uuid::new_v4();
+        let row: User = self
+            .auth
+            .conn
+            .query_one(&self.auth.insert_user, &[&uuid, &username, &pass])
+            .await?
+            .into();
+        Ok(SignUpAction::UserAdded(row.uuid))
     }
 
     /// Tries to login with the given username & pass
@@ -103,31 +99,28 @@ impl Database {
     /// # Errors
     ///
     /// Fails when the database does
-    pub async fn login(&self, name: &str, pass: &str) -> Result<LoginAction, LoginError> {
-        use libreauth::pass::Error::*;
+    pub async fn login(&self, username: &str, password: &str) -> Result<LoginAction, LoginError> {
         let Some(user) = self
-            .auth_conn
-            .query_opt(&self.statements.username_taken, &[&name])
+            .auth
+            .conn
+            .query_opt(&self.auth.get_user, &[&username])
             .await?
             .map(User::from)
         else {
             return Ok(LoginAction::UsernameNotFound);
         };
 
-        match HashBuilder::from_phc(&user.password) {
-            Ok(h) if h.is_valid(pass) => (),
-            Ok(_) => return Ok(LoginAction::IncorrectPassword),
-            Err(PasswordTooShort { .. } | PasswordTooLong { .. }) => {
-                return Ok(LoginAction::IncorrectPassword)
-            }
-            Err(InvalidPasswordFormat) => return Err(LoginError::HashError),
+        match self.auth.validate(&user.password, password) {
+            Some(true) => Ok(LoginAction::LoggedIn(user.uuid)),
+            Some(false) => Ok(LoginAction::IncorrectPassword),
+            None => Err(LoginError::HashError),
         }
-        Ok(LoginAction::LoggedIn(user.uuid))
     }
 
     async fn username_taken(&self, name: &str) -> Result<bool, PgError> {
-        self.auth_conn
-            .query_opt(&self.statements.username_taken, &[&name])
+        self.auth
+            .conn
+            .query_opt(&self.auth.get_user, &[&name])
             .await
             .map(|r| r.is_some())
     }
@@ -153,33 +146,4 @@ pub enum LoginAction {
     IncorrectPassword,
     /// logged in
     LoggedIn(Uuid),
-}
-
-/// Adds the required tables
-/// Holds all premade statements
-struct Statements {
-    username_taken: Statement,
-    insert_user: Statement,
-}
-
-impl Statements {
-    async fn new(manager: &Object) -> Result<Self, PgError> {
-        let username_taken = manager.prepare(USERNAME_QUERY).await?;
-        let insert_user = manager.prepare(INSERT_USER).await?;
-        Ok(Self {
-            username_taken,
-            insert_user,
-        })
-    }
-}
-
-/// The result of hashing a password
-#[derive(Debug)]
-pub enum HashAction {
-    /// The hashed + salted password
-    Hashed(String),
-    /// Password is shorter than the allowed min
-    TooShort,
-    /// Password is longer than the allowed max
-    TooLong,
 }

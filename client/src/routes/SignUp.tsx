@@ -11,6 +11,7 @@ const SignUp = () => {
   const infoChange = (event: ChangeEvent<HTMLInputElement>) => {
     setInfo({ ...info, [event.target.name]: event.target.value });
   };
+
   const signUp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const res = await fetch("/api/req-sign-up", {
@@ -20,8 +21,16 @@ const SignUp = () => {
     });
     switch (res.status) {
       case 200:
+        alert("User added")
+        break;
+      case 400:
+        alert("Invalid password inputted")
+        break;
+      case 409:
+        alert("Username taken")
         break;
       case 500:
+        alert("Internal server error")
         break;
     }
     console.log(res);

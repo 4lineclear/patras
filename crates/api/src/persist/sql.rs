@@ -1,36 +1,35 @@
 use topoma::topoma;
 
 topoma![
-    #[doc = "Creates the users table"]
     CREATE_USER_TABLE
         >> r"
-CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-  uuid UUID NOT NULL UNIQUE,
-  username TEXT NOT NULL UNIQUE,
-  password TEXT NOT NULL
+Create Table If Not Exists users (
+  id Integer Primary Key Generated Always As Identity,
+  uuid Uuid Not Null Unique,
+  username Text Not Null Unique,
+  password Text Not Null
 );
 ",
     DROP_USER_TABLE
         >> r"
-DROP TABLE IF EXISTS users
+Drop Table If Exists users
 ",
     INSERT_USER
         >> r"
-INSERT INTO
+Insert Into
   users (uuid, username, password)
-VALUES
+Values
   ($1, $2, $3)
-RETURNING
+Returning
   *
 ",
     USERNAME_QUERY
         >> r"
-SELECT
+Select
   *
-FROM
+From
   users
-WHERE
+Where
   username = $1
 "
 ];

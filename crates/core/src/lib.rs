@@ -1,12 +1,14 @@
 //! The core server implementations
+#![allow(clippy::enum_glob_use)]
 
 use std::{sync::Arc, time::Duration};
 
 use api::{
+    derivative::Derivative,
     libreauth::pass::{Error as HashError, HashBuilder},
     persist::{error::ConnectionError, SignUpAction},
     thiserror::{self, Error},
-    AuthSession,
+    Context,
 };
 
 use axum::{
@@ -39,7 +41,7 @@ pub use tracing_subscriber;
 /// TODO: errors
 pub async fn router(url: String) -> Result<Router, CreateRouterError> {
     let api = Api {
-        auth: AuthSession::new(url, HashBuilder::new().finalize()?)
+        auth: Context::new(url, HashBuilder::new().finalize()?)
             .await?
             .into(),
     };
@@ -68,7 +70,7 @@ pub enum CreateRouterError {
     HashError(#[from] HashError),
 }
 
-type SignUpResponse = (StatusCode, ());
+type SignUpResponse = StatusCode;
 
 async fn sign_up(State(api): State<Api>, info: Json<UserInfo>) -> SignUpResponse {
     api.sign_up(&info).await
@@ -78,29 +80,32 @@ async fn log_in(State(_api): State<Api>) {}
 
 async fn log_out(State(_api): State<Api>) {}
 
-#[derive(Debug, Deserialize)]
+#[derive(Derivative, Deserialize)]
+#[derivative(Debug)]
 struct UserInfo {
     username: String,
+    #[derivative(Debug = "ignore")]
     password: String,
 }
 
 /// The state of the router
 #[derive(Debug, Clone)]
 pub struct Api {
-    auth: Arc<AuthSession>,
+    auth: Arc<Context>,
 }
 
 impl Api {
     async fn sign_up(&self, info: &UserInfo) -> SignUpResponse {
         use SignUpAction::*;
-        tracing::info!("Adding user: {info:?}");
 
-        // TODO: error handling
         match self.auth.sign_up(&info.username, &info.password).await {
-            Ok(UsernameTaken) => (StatusCode::OK, ()),
-            Ok(InvalidPassword) => (StatusCode::OK, ()),
-            Ok(UserAdded(_)) => (StatusCode::OK, ()),
-            Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, ()),
+            Ok(UsernameTaken) => StatusCode::CONFLICT,
+            Ok(InvalidPassword) => StatusCode::BAD_REQUEST,
+            Ok(UserAdded(_)) => StatusCode::OK,
+            Err(e) => {
+                tracing::error!("Server error: {e}");
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 # etc
 derivative = "2.2"
+tracing = "0.1"
 # pass
 libreauth = "0.16"
 # persist
@@ -14,11 +15,8 @@ thiserror = "1.0"
 deadpool-postgres = "0.14"
 tokio-postgres = { version = "0.7", features = ["with-uuid-1"] }
 topoma = { path = "../topoma/" }
-uuid = "1.9"
+uuid = "1.10"
 
-[build-dependencies]
-anyhow = "1.0"
-toml = "0.8"
 
 [lints]
 workspace = true

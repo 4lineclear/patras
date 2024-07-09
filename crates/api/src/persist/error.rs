@@ -5,13 +5,13 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum ConnectionError {
     /// Create pool error
-    #[error(transparent)]
+    #[error("Database pool creation error: {0}")]
     CreatePoolError(#[from] CreatePoolError),
     /// An error communicating with the Postgres server.
-    #[error(transparent)]
+    #[error("Database error: {0}")]
     Postgres(#[from] tokio_postgres::Error),
     /// Pool Error
-    #[error(transparent)]
+    #[error("Database pool error: {0}")]
     PoolError(#[from] PoolError),
 }
 
@@ -22,7 +22,7 @@ pub enum SignUpError {
     #[error("Unable to hash given password")]
     HashError,
     /// An error communicating with the Postgres server.
-    #[error(transparent)]
+    #[error("Database error: {0}")]
     Postgres(#[from] tokio_postgres::Error),
 }
 
@@ -33,6 +33,6 @@ pub enum LoginError {
     #[error("Unable to hash given password")]
     HashError,
     /// An error communicating with the Postgres server.
-    #[error(transparent)]
+    #[error("Database error: {0}")]
     Postgres(#[from] tokio_postgres::Error),
 }
