@@ -31,6 +31,7 @@ function serve(): UserConfig {
       },
       port: ports.client,
     },
+    css: { modules: { localsConvention: "camelCase" } },
   };
 }
 

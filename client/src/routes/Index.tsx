@@ -1,3 +1,5 @@
+import styles from "./index.module.scss";
+
 const PatrasLink = (
   <a target="_blank" href="https://en.wikipedia.org/wiki/Patras">
     Patras
@@ -10,7 +12,7 @@ const GithubLink = (
 );
 
 const Index = () => (
-  <div id="index">
+  <div id={styles.page}>
     <br />
     <br />
     <p>PaTraS is a hyper minimalist paper trading service</p>

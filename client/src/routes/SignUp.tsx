@@ -1,4 +1,5 @@
 import { ChangeEvent, FormEvent, useState } from "react";
+import styles from "./sign-up.module.scss";
 
 interface FormInfo {
   username: string;
@@ -21,50 +22,64 @@ const SignUp = () => {
     });
     switch (res.status) {
       case 200:
-        alert("User added")
+        alert("User added");
         break;
       case 400:
-        alert("Invalid password inputted")
+        alert("Invalid password inputted");
         break;
       case 409:
-        alert("Username taken")
+        alert("Username taken");
         break;
       case 500:
-        alert("Internal server error")
+        alert("Internal server error");
         break;
     }
     console.log(res);
   };
 
   return (
-    <div id="sign-up-page">
-      <form onSubmit={signUp}>
-        <label htmlFor="username-input">Username</label>
+    <div id={styles.page}>
+      <form id={styles.form} onSubmit={signUp}>
+        <h2>Create a patras account</h2>
+        <p>Complete the form below to create your account</p>
+
+        <div id={styles.usernameLabelDiv}>
+          <label className={styles.label} htmlFor="username-input">
+            Username:
+          </label>
+        </div>
         <input
-          id="username-input"
+          id={styles.usernameInput}
+          className={styles.input}
           name="username"
           type="text"
           autoComplete="username"
           value={info.username}
           onChange={infoChange}
         />
-        <label htmlFor="password-input">Password</label>
+        <div id={styles.passwordLabelDiv}>
+          <label className={styles.label} htmlFor="password-input">
+            Password:
+          </label>
+          <input
+            id={styles.showPasswordInput}
+            type="checkbox"
+            checked={showPass}
+            tabIndex={-1}
+            onChange={() => setShowPass((prev) => !prev)}
+          />
+          <span id={styles.showPasswordSpan}>Show</span>
+        </div>
         <input
-          id="password-input"
+          id={styles.passwordInput}
+          className={styles.input}
           name="password"
           type={showPass ? "text" : "password"}
           autoComplete="password"
           value={info.password}
           onChange={infoChange}
         />
-        <input
-          id="show-password-box"
-          type="checkbox"
-          checked={showPass}
-          onChange={() => setShowPass((prev) => !prev)}
-        />
-        <span>Show password</span>
-        <input type="submit" value="Sign Up" />
+        <input id={styles.submitButton} type="submit" value="Sign Up" />
       </form>
     </div>
   );

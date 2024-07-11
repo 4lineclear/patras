@@ -1,0 +1,68 @@
+@use "../main.scss" as *;
+
+// TODO: better styling
+
+#page {
+  overflow: hidden;
+  position: relative;
+  background-color: #888888;
+  width: 100%;
+  height: 100%;
+}
+
+#form {
+  background-color: #fefefe;
+  margin: 2rem auto 2rem auto;
+  width: 600px;
+  height: 70%;
+  padding: 30px;
+
+  @include size(lg) {
+    width: 500px;
+  }
+  @include size(md) {
+    width: 400px;
+  }
+  @include size(sm) {
+    width: 300px;
+  }
+}
+
+#username-label-div {
+  margin-bottom: 5px;
+}
+
+#password-label-div {
+  display: flex;
+  margin-bottom: 5px;
+}
+
+#show-password-span {
+  font-size: 1.2rem;
+  align-self: end;
+}
+
+#show-password-input {
+  font-size: 1.2rem;
+  transform: scale(1.5);
+  margin-right: 10px;
+  align-self: end;
+}
+
+#submit-button {
+  border-radius: 0;
+  padding: 10px;
+  font-size: 1.2rem;
+  width: 100%;
+}
+
+.label {
+  font-size: 1.25rem;
+  width: 100%;
+}
+
+.input {
+  font-size: 1.2rem;
+  width: 100%;
+  margin-bottom: 60px;
+}

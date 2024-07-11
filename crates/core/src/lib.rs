@@ -95,7 +95,7 @@ pub struct Api {
 }
 
 impl Api {
-    async fn sign_up(&self, info: &UserInfo) -> SignUpResponse {
+    async fn sign_up(&self, info: &UserInfo) -> StatusCode {
         use SignUpAction::*;
 
         match self.auth.sign_up(&info.username, &info.password).await {
