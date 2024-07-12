@@ -56,6 +56,17 @@
   width: 100%;
 }
 
+#name-info-bar {
+}
+#pass-info-bar {
+}
+
+.info-bar {
+  height: 1rem;
+  color: red;
+  margin-bottom: 60px;
+}
+
 .label {
   font-size: 1.25rem;
   width: 100%;
@@ -64,5 +75,4 @@
 .input {
   font-size: 1.2rem;
   width: 100%;
-  margin-bottom: 60px;
 }

@@ -1,27 +1,29 @@
 import { Link } from "wouter";
-import Context from "../Context";
+import { Context } from "../Context";
 import { useContext } from "react";
 import styles from "./header.module.scss";
 
 /**
  * The optional login buttons
  */
-const Buttons = () => (
-  <div>
-    <span className={styles.linkContainer}>
-      <Link href="log-in">
-        <span className={styles.linkText}>Log In</span>
-      </Link>
-    </span>
-    <span className={styles.linkContainer}>
-      <Link href="sign-up">
-        <span className={styles.linkText}>Sign Up</span>
-      </Link>
-    </span>
-  </div>
-);
+function Buttons() {
+  return (
+    <div>
+      <span className={styles.linkContainer}>
+        <Link href="log-in">
+          <span className={styles.linkText}>Log In</span>
+        </Link>
+      </span>
+      <span className={styles.linkContainer}>
+        <Link href="sign-up">
+          <span className={styles.linkText}>Sign Up</span>
+        </Link>
+      </span>
+    </div>
+  );
+}
 
-const Header = () => {
+export default function Header() {
   const context = useContext(Context);
   return (
     <header>
@@ -33,9 +35,7 @@ const Header = () => {
         <span className={styles.titleLarge}>S</span>
         <span className={styles.titleSmall}>olo</span>
       </Link>
-      {context.logged_in ? null : <Buttons />}
+      {context.auth.login ? null : <Buttons />}
     </header>
   );
-};
-
-export default Header;
+}

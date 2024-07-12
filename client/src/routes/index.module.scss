@@ -1,3 +1,15 @@
 #page {
-  margin-left: 2vw;
+  display: flex;
+  flex-direction: column;
+  padding: 2vw;
+}
+
+#sign-up {
+  font-size: 2rem;
+  text-decoration: none;
+  align-self: center;
+}
+
+#sign-up span {
+  color: black;
 }

@@ -1,17 +1,23 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useContext, useState } from "react";
 import styles from "./sign-up.module.scss";
+import { Context } from "../Context";
+import { useLocation } from "wouter";
 
 interface FormInfo {
   username: string;
   password: string;
 }
 
-const SignUp = () => {
+export default function SignUp() {
+  const context = useContext(Context);
+  const [, setLocation] = useLocation();
   const [showPass, setShowPass] = useState(false);
   const [info, setInfo] = useState<FormInfo>({ username: "", password: "" });
   const infoChange = (event: ChangeEvent<HTMLInputElement>) => {
     setInfo({ ...info, [event.target.name]: event.target.value });
   };
+  const [attempts, setAttempts] = useState(0);
+  const [response, setResponse] = useState<Response | null>(null);
 
   const signUp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -20,22 +26,38 @@ const SignUp = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(info),
     });
-    switch (res.status) {
-      case 200:
-        alert("User added");
-        break;
-      case 400:
-        alert("Invalid password inputted");
-        break;
-      case 409:
-        alert("Username taken");
-        break;
-      case 500:
-        alert("Internal server error");
-        break;
+    if (res.status == 200) {
+      context.auth.setLogin(true);
+      setLocation("/");
     }
-    console.log(res);
+    setResponse(res);
+    setAttempts(attempts + 1);
   };
+
+  const passInfoBarText = () => {
+    switch (response?.status) {
+      case 409:
+        return "Incorrect password inputted";
+      default:
+        return "";
+    }
+  };
+  const nameInfoBarText = () => {
+    switch (response?.status) {
+      case 400:
+        return "Username not found";
+      default:
+        return "";
+    }
+  };
+
+  if (context.auth.login) {
+    return (
+      <div>
+        <h1>User is already logged in</h1>
+      </div>
+    );
+  }
 
   return (
     <div id={styles.page}>
@@ -57,6 +79,9 @@ const SignUp = () => {
           value={info.username}
           onChange={infoChange}
         />
+        <div id={styles.nameInfoBar} className={styles.infoBar}>
+          {nameInfoBarText()}
+        </div>
         <div id={styles.passwordLabelDiv}>
           <label className={styles.label} htmlFor="password-input">
             Password:
@@ -79,10 +104,11 @@ const SignUp = () => {
           value={info.password}
           onChange={infoChange}
         />
+        <div id={styles.passInfoBar} className={styles.infoBar}>
+          {passInfoBarText()}
+        </div>
         <input id={styles.submitButton} type="submit" value="Sign Up" />
       </form>
     </div>
   );
-};
-
-export default SignUp;
+}
