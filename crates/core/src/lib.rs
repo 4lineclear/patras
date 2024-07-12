@@ -6,9 +6,9 @@ use std::{sync::Arc, time::Duration};
 use api::{
     derivative::Derivative,
     libreauth::pass::{Error as HashError, HashBuilder},
-    persist::{error::ConnectionError, SignUpAction},
+    persist::{error::ConnectionError, LoginAction, SignUpAction},
     thiserror::{self, Error},
-    Context,
+    Context, ValidationRules,
 };
 
 use axum::{
@@ -41,9 +41,18 @@ pub use tracing_subscriber;
 /// TODO: errors
 pub async fn router(url: String) -> Result<Router, CreateRouterError> {
     let api = Api {
-        auth: Context::new(url, HashBuilder::new().finalize()?)
-            .await?
-            .into(),
+        auth: Context::new(
+            url,
+            HashBuilder::new().finalize()?,
+            ValidationRules {
+                pass_min: 8,
+                pass_max: 128,
+                name_min: 1,
+                name_max: 128,
+            },
+        )
+        .await?
+        .into(),
     };
 
     Ok(Router::new()
@@ -70,13 +79,13 @@ pub enum CreateRouterError {
     HashError(#[from] HashError),
 }
 
-type SignUpResponse = StatusCode;
-
-async fn sign_up(State(api): State<Api>, info: Json<UserInfo>) -> SignUpResponse {
+async fn sign_up(State(api): State<Api>, info: Json<UserInfo>) -> StatusCode {
     api.sign_up(&info).await
 }
 
-async fn log_in(State(_api): State<Api>) {}
+async fn log_in(State(api): State<Api>, info: Json<UserInfo>) -> StatusCode {
+    api.log_in(&info).await
+}
 
 async fn log_out(State(_api): State<Api>) {}
 
@@ -102,6 +111,19 @@ impl Api {
             Ok(UsernameTaken) => StatusCode::CONFLICT,
             Ok(InvalidPassword) => StatusCode::BAD_REQUEST,
             Ok(UserAdded(_)) => StatusCode::OK,
+            Err(e) => {
+                tracing::error!("Server error: {e}");
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+        }
+    }
+    async fn log_in(&self, info: &UserInfo) -> StatusCode {
+        use LoginAction::*;
+
+        match self.auth.login(&info.username, &info.password).await {
+            Ok(UsernameNotFound) => StatusCode::CONFLICT,
+            Ok(IncorrectPassword) => StatusCode::BAD_REQUEST,
+            Ok(LoggedIn(_)) => StatusCode::OK,
             Err(e) => {
                 tracing::error!("Server error: {e}");
                 StatusCode::INTERNAL_SERVER_ERROR

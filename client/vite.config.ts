@@ -31,7 +31,19 @@ function serve(): UserConfig {
       },
       port: ports.client,
     },
-    css: { modules: { localsConvention: "camelCase" } },
+    css: {
+      modules: {
+        localsConvention: "camelCase",
+        scopeBehaviour: "local",
+        generateScopedName: "[name]__[local]___[hash:base64:5]",
+      },
+      preprocessorOptions: {
+        scss: {
+          modules: true,
+        },
+      },
+    },
+    build: { minify: false, cssMinify: false },
   };
 }
 
@@ -90,6 +102,12 @@ function build(): UserConfig {
     plugins: [react()],
     esbuild: {
       drop: ["console"],
+    },
+    css: {
+      modules: {
+        localsConvention: "camelCase",
+        scopeBehaviour: "local",
+      },
     },
   };
 }

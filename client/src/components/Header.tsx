@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import Context from "../Context";
+import { useContext } from "react";
 import styles from "./header.module.scss";
-// import "./header.module.scss"
 
 /**
  * The optional login buttons
@@ -22,7 +22,7 @@ const Buttons = () => (
 );
 
 const Header = () => {
-  const context = Context;
+  const context = useContext(Context);
   return (
     <header>
       <Link id={styles.titleHolder} href="/">

@@ -6,10 +6,10 @@ dev:
 prod: build 
     cargo run -p prod-server
 
-shuttle: build
-    cargo shuttle run -r
+shuttle *ARGS: build
+    cargo shuttle {{ARGS}}
 
-build:
+build :
     cd client && vite build && \
     cd ../ && cargo build --all
 

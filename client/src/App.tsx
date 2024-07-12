@@ -9,6 +9,7 @@ const App = () => (
     <Header />
     <Switch>
       <Route path="/" component={Index} />
+      <Route path="/log-in" component={SignUp} />
       <Route path="/sign-up" component={SignUp} />
       <Route path="*" component={PageNotFound} />
     </Switch>
