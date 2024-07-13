@@ -3,11 +3,15 @@
 
 use std::{sync::Arc, time::Duration};
 
-use axum::Router;
+use axum::extract::State;
+use axum::http::StatusCode;
+use axum::routing::post;
+use axum::{Json, Router};
 use axum_login::AuthManagerLayerBuilder;
+use persist::auth::{AuthSession, Credentials};
 use persist::{auth::Backend, error::ConnectionError};
 use sqlx::PgPool;
-use state::{Context, ValidationRules};
+use state::{AddUserAction, Context, ValidationRules};
 use thiserror::{self, Error};
 use tokio::task::JoinHandle;
 use tower_http::{
@@ -88,7 +92,7 @@ pub async fn router(pool: PgPool) -> Result<App, CreateRouterError> {
     );
 
     Ok(App {
-        router: Router::new().layer(layers).with_state(api),
+        router: gen_router().layer(layers).with_state(api),
         deletion_handle,
     })
 }
@@ -104,6 +108,39 @@ async fn deletion_task(
     }
 }
 
+/// Creates the actual routes
+fn gen_router() -> Router<Api> {
+    Router::new()
+        .route("/req-log-in", post(login))
+        .route("/req-sign-up", post(sign_up))
+}
+
+// TODO: improve upon messaging
+
+async fn login(mut auth: AuthSession, creds: Json<Credentials>) -> StatusCode {
+    let user = match auth.authenticate(creds.0).await {
+        Ok(Some(user)) => user,
+        Ok(None) => return StatusCode::BAD_REQUEST,
+        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR,
+    };
+
+    if auth.login(&user).await.is_err() {
+        return StatusCode::INTERNAL_SERVER_ERROR;
+    }
+
+    StatusCode::OK
+}
+
+async fn sign_up(State(api): State<Api>, creds: Json<Credentials>) -> StatusCode {
+    use AddUserAction::*;
+
+    match api.sign_up(&creds.username, &creds.password).await {
+        Ok(Added(_)) => StatusCode::OK,
+        Ok(InvalidName | InvalidPass) => StatusCode::BAD_REQUEST,
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+    }
+}
+
 /// an error while creating the router
 #[derive(Debug, Error)]
 pub enum CreateRouterError {
@@ -115,8 +152,15 @@ pub enum CreateRouterError {
 /// The state of the router
 #[derive(Debug, Clone)]
 pub struct Api {
-    #[allow(dead_code)]
     ctx: Arc<Context>,
+}
+
+impl std::ops::Deref for Api {
+    type Target = Context;
+
+    fn deref(&self) -> &Self::Target {
+        &self.ctx
+    }
 }
 
 /// Creates a logging object

@@ -55,15 +55,10 @@ impl AuthnBackend for Backend {
         &self,
         creds: Self::Credentials,
     ) -> Result<Option<Self::User>, Self::Error> {
-        let user: Option<Self::User> = sqlx::query_as("select * from users where username = $1 ")
-            .bind(creds.username)
+        let user = sqlx::query_file_as!(User, "queries/select_username.sql", creds.username)
             .fetch_optional(&self.pool)
             .await?;
 
-        // Verifying the password is blocking and potentially slow, so we'll do so via
-        // `spawn_blocking`.
-        // We're using password-based authentication--this works by comparing our form
-        // input with an argon2 password hash.
         task::spawn_blocking(|| {
             Ok(user.filter(|user| verify_password(creds.password, &user.password).is_ok()))
         })
@@ -71,8 +66,7 @@ impl AuthnBackend for Backend {
     }
 
     async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
-        let user = sqlx::query_as("select * from users where id = ?")
-            .bind(user_id)
+        let user = sqlx::query_file_as!(User, "queries/select_id.sql", user_id)
             .fetch_optional(&self.pool)
             .await?;
 

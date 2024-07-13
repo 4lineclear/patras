@@ -1,17 +1,19 @@
 #![allow(clippy::single_match_else)]
 
 use derivative::Derivative;
+use password_auth::generate_hash;
 use sqlx::PgPool;
 
-use crate::persist::{error::ConnectionError, Database};
+use crate::{
+    models::User,
+    persist::{error::ConnectionError, Database},
+};
 
 /// The central state
 #[derive(Derivative)]
 #[derivative(Debug)]
 pub struct Context {
-    #[allow(dead_code)]
     database: Database,
-    #[allow(dead_code)]
     rules: ValidationRules,
 }
 
@@ -28,6 +30,26 @@ impl Context {
             database: Database::new(pool).await?,
             rules,
         })
+    }
+    /// Try signing up a user
+    ///
+    /// # Errors
+    ///
+    /// See [`sqlx`]
+    pub async fn sign_up(
+        &self,
+        username: &str,
+        password: &str,
+    ) -> Result<AddUserAction, sqlx::Error> {
+        match self.rules.validate(username, password) {
+            Validated::Valid => self
+                .database
+                .add_user(username, &generate_hash(password))
+                .await
+                .map(AddUserAction::Added),
+            Validated::InvalidPass => Ok(AddUserAction::InvalidPass),
+            Validated::InvalidName => Ok(AddUserAction::InvalidName),
+        }
     }
 }
 
@@ -74,5 +96,15 @@ pub enum Validated {
     /// The given pass is invalid
     InvalidPass,
     /// The given name is invalid
+    InvalidName,
+}
+
+/// The result of adding a user
+pub enum AddUserAction {
+    /// User added
+    Added(User),
+    /// An invalid password
+    InvalidPass,
+    /// An invalid user
     InvalidName,
 }

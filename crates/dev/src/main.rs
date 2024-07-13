@@ -26,6 +26,7 @@ async fn main() -> Result<()> {
 /// # Errors
 ///
 /// Fails when either [`TcpListener`] or [`axum::serve()`] does
+#[allow(clippy::cognitive_complexity)]
 pub async fn serve() -> Result<()> {
     let pool = PgPool::connect(env!("DATABASE_URL")).await?;
     let app = router(pool).await.context("Failed to create router")?;
@@ -39,7 +40,7 @@ pub async fn serve() -> Result<()> {
         .context("Axum Server Error")?;
     info!("Server Closed");
 
-    app.deletion_handle.await??;
+    app.deletion_handle.abort();
     info!("dev process ending");
     Ok(())
 }
