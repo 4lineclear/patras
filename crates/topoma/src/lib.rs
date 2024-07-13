@@ -24,10 +24,11 @@ pub(crate) mod parse;
 /// ];
 /// # }
 ///
+/// ```
+///
 /// `$SQL` refers to an sql file in the string,
 ///
 /// `$PATH_TO_FILE` refers to an sql file's path relative to `CARGO_MANIFEST_DIR`,
-/// ```
 #[proc_macro]
 pub fn topoma(input: TokenStream) -> TokenStream {
     parse_macro_input!(input as SqlMonolith)

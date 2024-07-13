@@ -1,4 +1,3 @@
-//! Persist yeah
 #![allow(clippy::wildcard_imports)]
 #![allow(clippy::enum_glob_use)]
 
@@ -22,9 +21,14 @@ pub mod models;
 /// Holds some queries
 pub(crate) mod sql;
 
+/// postgres store
+pub mod store;
+
 /// Errors
 #[allow(clippy::module_name_repetitions)]
 pub mod error;
+
+// TODO: move everything persist related to core-server
 
 /// The overarching database system
 #[derive(Derivative)]
@@ -71,16 +75,12 @@ impl Database {
     /// # Errors
     ///
     /// Fails when the database does
-    pub async fn sign_up(
-        &self,
-        username: &str,
-        password: &str,
-    ) -> Result<SignUpAction, SignUpError> {
-        let Some(pass) = self.auth.hash(password) else {
+    pub async fn sign_up(&self, name: &str, pass: &str) -> Result<SignUpAction, SignUpError> {
+        let Some(pass) = self.auth.hash(pass) else {
             return Ok(SignUpAction::InvalidPassword);
         };
 
-        if self.username_taken(username).await? {
+        if self.username_taken(name).await? {
             return Ok(SignUpAction::UsernameTaken);
         }
 
@@ -88,7 +88,7 @@ impl Database {
         let row: User = self
             .auth
             .conn
-            .query_one(&self.auth.insert_user, &[&uuid, &username, &pass])
+            .query_one(&self.auth.insert_user, &[&uuid, &name, &pass])
             .await?
             .into();
         Ok(SignUpAction::UserAdded(row.uuid))
@@ -99,18 +99,18 @@ impl Database {
     /// # Errors
     ///
     /// Fails when the database does
-    pub async fn login(&self, username: &str, password: &str) -> Result<LoginAction, LoginError> {
+    pub async fn login(&self, name: &str, pass: &str) -> Result<LoginAction, LoginError> {
         let Some(user) = self
             .auth
             .conn
-            .query_opt(&self.auth.get_user, &[&username])
+            .query_opt(&self.auth.get_user, &[&name])
             .await?
             .map(User::from)
         else {
             return Ok(LoginAction::UsernameNotFound);
         };
 
-        match self.auth.validate(&user.password, password) {
+        match self.auth.validate(&user.password, pass) {
             Some(true) => Ok(LoginAction::LoggedIn(user.uuid)),
             Some(false) => Ok(LoginAction::IncorrectPassword),
             None => Err(LoginError::HashError),

@@ -45,14 +45,13 @@ impl Context {
     ///
     /// # Errors
     ///
-    /// Fails when [`Database::add_user`] does.
+    /// Fails when [`Database::sign_up`] does.
     pub async fn sign_up(&self, name: &str, pass: &str) -> Result<SignUpAction, SignUpError> {
         match self.rules.validate(name, pass) {
-            Validated::Allowed => (),
-            Validated::Pass => return Ok(SignUpAction::InvalidPassword),
-            Validated::Name => return Ok(SignUpAction::UsernameTaken),
+            Validated::Allowed => self.database.sign_up(name, pass).await,
+            Validated::Pass => Ok(SignUpAction::InvalidPassword),
+            Validated::Name => Ok(SignUpAction::UsernameTaken),
         }
-        self.database.sign_up(name, pass).await
     }
 
     /// Tries to login with the given username & pass
@@ -62,11 +61,10 @@ impl Context {
     /// Fails when the database does
     pub async fn login(&self, name: &str, pass: &str) -> Result<LoginAction, LoginError> {
         match self.rules.validate(name, pass) {
-            Validated::Allowed => (),
-            Validated::Pass => return Ok(LoginAction::IncorrectPassword),
-            Validated::Name => return Ok(LoginAction::UsernameNotFound),
+            Validated::Allowed => self.database.login(name, pass).await,
+            Validated::Pass => Ok(LoginAction::IncorrectPassword),
+            Validated::Name => Ok(LoginAction::UsernameNotFound),
         }
-        self.database.login(name, pass).await
     }
 }
 
