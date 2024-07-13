@@ -3,16 +3,9 @@
 
 use std::{sync::Arc, time::Duration};
 
-use axum::{
-    extract::State,
-    http::StatusCode,
-    routing::{delete, post},
-    Json, Router,
-};
-use derivative::Derivative;
+use axum::Router;
 use libreauth::pass::{Error as HashError, HashBuilder};
-use persist::{error::ConnectionError, LoginAction, SignUpAction};
-use serde::Deserialize;
+use persist::error::ConnectionError;
 use state::{Context, ValidationRules};
 use thiserror::{self, Error};
 use tower_http::{
@@ -64,9 +57,6 @@ pub async fn router(url: String) -> Result<Router, CreateRouterError> {
             TimeoutLayer::new(Duration::from_secs(4)),
             CatchPanicLayer::new(),
         ))
-        .route("/req-sign-up", post(sign_up))
-        .route("/req-log-in", post(log_in))
-        .route("/req-log-out", delete(log_out))
         .with_state(api))
 }
 
@@ -81,59 +71,11 @@ pub enum CreateRouterError {
     HashError(#[from] HashError),
 }
 
-async fn sign_up(State(api): State<Api>, info: Json<UserInfo>) -> StatusCode {
-    api.sign_up(&info).await
-}
-
-async fn log_in(State(api): State<Api>, info: Json<UserInfo>) -> StatusCode {
-    api.log_in(&info).await
-}
-
-async fn log_out(State(_api): State<Api>) {}
-
-#[derive(Derivative, Deserialize)]
-#[derivative(Debug)]
-struct UserInfo {
-    username: String,
-    #[derivative(Debug = "ignore")]
-    password: String,
-}
-
 /// The state of the router
 #[derive(Debug, Clone)]
 pub struct Api {
+    #[allow(dead_code)]
     ctx: Arc<Context>,
-}
-
-impl Api {
-    async fn sign_up(&self, info: &UserInfo) -> StatusCode {
-        StatusCode::INTERNAL_SERVER_ERROR
-        // use SignUpAction::*;
-        //
-        // match self.auth.sign_up(&info.username, &info.password).await {
-        //     Ok(UsernameTaken) => StatusCode::CONFLICT,
-        //     Ok(InvalidPassword) => StatusCode::BAD_REQUEST,
-        //     Ok(UserAdded(_)) => StatusCode::OK,
-        //     Err(e) => {
-        //         tracing::error!("Server error: {e}");
-        //         StatusCode::INTERNAL_SERVER_ERROR
-        //     }
-        // }
-    }
-    async fn log_in(&self, info: &UserInfo) -> StatusCode {
-        StatusCode::INTERNAL_SERVER_ERROR
-        // use LoginAction::*;
-        //
-        // match self.auth.login(&info.username, &info.password).await {
-        //     Ok(UsernameNotFound) => StatusCode::CONFLICT,
-        //     Ok(IncorrectPassword) => StatusCode::BAD_REQUEST,
-        //     Ok(LoggedIn(_)) => StatusCode::OK,
-        //     Err(e) => {
-        //         tracing::error!("Server error: {e}");
-        //         StatusCode::INTERNAL_SERVER_ERROR
-        //     }
-        // }
-    }
 }
 
 /// Creates a logging object

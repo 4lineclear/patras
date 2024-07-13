@@ -31,12 +31,6 @@ sqlx = { version = "0.7", features = [
 	"migrate",
 	"uuid",
 ] }
-# deadpool-postgres = "0.14"
-# tokio-postgres = { version = "0.7", features = [
-# 	"with-uuid-1",
-# 	"with-time-0_3",
-# ] }
-# topoma = { path = "../topoma/" }
 uuid = "1.10"
 # logging
 tracing = "0.1"

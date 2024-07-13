@@ -1,14 +1,21 @@
 #![allow(clippy::single_match_else)]
 
+use derivative::Derivative;
 use libreauth::pass::Hasher;
 
 use crate::persist::{error::ConnectionError, Database};
 
 /// The central state
-#[derive(Debug)]
+#[derive(Derivative)]
+#[derivative(Debug)]
 pub struct Context {
+    #[allow(dead_code)]
     database: Database,
+    #[allow(dead_code)]
     rules: ValidationRules,
+    #[derivative(Debug = "ignore")]
+    #[allow(dead_code)]
+    hasher: Hasher,
 }
 
 // TODO: eventually and email sign up using https://docs.rs/lettre/latest/lettre/
@@ -25,36 +32,11 @@ impl Context {
         rules: ValidationRules,
     ) -> Result<Self, ConnectionError> {
         Ok(Self {
-            database: Database::new(&url, hasher).await?,
+            database: Database::new(&url).await?,
             rules,
+            hasher,
         })
     }
-
-    // /// Adds a user
-    // ///
-    // /// # Errors
-    // ///
-    // /// Fails when [`Database::sign_up`] does.
-    // pub async fn sign_up(&self, name: &str, pass: &str) -> Result<SignUpAction, SignUpError> {
-    //     match self.rules.validate(name, pass) {
-    //         Validated::Allowed => self.database.sign_up(name, pass).await,
-    //         Validated::Pass => Ok(SignUpAction::InvalidPassword),
-    //         Validated::Name => Ok(SignUpAction::UsernameTaken),
-    //     }
-    // }
-    //
-    // /// Tries to login with the given username & pass
-    // ///
-    // /// # Errors
-    // ///
-    // /// Fails when the database does
-    // pub async fn login(&self, name: &str, pass: &str) -> Result<LoginAction, LoginError> {
-    //     match self.rules.validate(name, pass) {
-    //         Validated::Allowed => self.database.login(name, pass).await,
-    //         Validated::Pass => Ok(LoginAction::IncorrectPassword),
-    //         Validated::Name => Ok(LoginAction::UsernameNotFound),
-    //     }
-    // }
 }
 
 /// Rules for validation

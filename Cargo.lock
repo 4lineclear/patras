@@ -2997,15 +2997,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sqlparser"
-version = "0.47.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "295e9930cd7a97e58ca2a070541a3ca502b17f5d1fa7157376d0fabd85324f25"
-dependencies = [
- "log",
-]
-
-[[package]]
 name = "sqlx"
 version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3542,16 +3533,6 @@ dependencies = [
  "tower-layer",
  "tower-service",
  "tracing",
-]
-
-[[package]]
-name = "topoma"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "sqlparser",
- "syn 2.0.68",
 ]
 
 [[package]]
