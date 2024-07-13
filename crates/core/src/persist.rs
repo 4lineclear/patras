@@ -22,13 +22,16 @@ pub mod models;
 pub(crate) mod sql;
 
 /// postgres store
+///
+/// Based off:
+///
+/// - [https://github.com/maxcountryman/tower-sessions/discussions/120]
+/// - [https://github.com/maxcountryman/tower-sessions-stores/blob/main/sqlx-store/src/postgres_store.rs]
 pub mod store;
 
 /// Errors
 #[allow(clippy::module_name_repetitions)]
 pub mod error;
-
-// TODO: move everything persist related to core-server
 
 /// The overarching database system
 #[derive(Derivative)]
@@ -38,8 +41,6 @@ pub struct Database {
     pool: Pool,
     auth: Auth,
 }
-
-// TODO: add password checker, rather than go through libreauth directly
 
 /// Opens a connection pool
 async fn open_pool(url: String) -> Result<Pool, ConnectionError> {

@@ -40,7 +40,7 @@ pub mod state;
 ///
 /// # Errors
 ///
-/// TODO: errors
+/// See [`CreateRouterError`]
 pub async fn router(url: String) -> Result<Router, CreateRouterError> {
     let api = Api {
         auth: Context::new(

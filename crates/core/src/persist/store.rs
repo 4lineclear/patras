@@ -1,5 +1,5 @@
 use axum::async_trait;
-use deadpool_postgres::{Pool, PoolError};
+use deadpool_postgres::{GenericClient, Pool, PoolError};
 use time::OffsetDateTime;
 use tower_sessions::{
     session::{Id, Record},
@@ -56,6 +56,37 @@ impl PostgresStore {
             table_name: "session".into(),
         }
     }
+    /// Set the session table schema name with the provided name.
+    pub fn with_schema_name(mut self, schema_name: impl AsRef<str>) -> Result<Self, String> {
+        let schema_name = schema_name.as_ref();
+        if !is_valid_identifier(schema_name) {
+            return Err(format!(
+                "Invalid schema name '{}'. Schema names must start with a letter or underscore \
+                 (including letters with diacritical marks and non-Latin letters).Subsequent \
+                 characters can be letters, underscores, digits (0-9), or dollar signs ($).",
+                schema_name
+            ));
+        }
+
+        schema_name.clone_into(&mut self.schema_name);
+        Ok(self)
+    }
+
+    /// Set the session table name with the provided name.
+    pub fn with_table_name(mut self, table_name: impl AsRef<str>) -> Result<Self, String> {
+        let table_name = table_name.as_ref();
+        if !is_valid_identifier(table_name) {
+            return Err(format!(
+                "Invalid table name '{}'. Table names must start with a letter or underscore \
+                 (including letters with diacritical marks and non-Latin letters).Subsequent \
+                 characters can be letters, underscores, digits (0-9), or dollar signs ($).",
+                table_name
+            ));
+        }
+
+        table_name.clone_into(&mut self.table_name);
+        Ok(self)
+    }
 
     /// Migrates the store
     ///
@@ -63,15 +94,24 @@ impl PostgresStore {
     ///
     /// See [`PostgresStoreError`]
     pub async fn migrate(&self) -> Result<(), PostgresStoreError> {
+        let mut conn = self.pool.get().await?;
+        let tx = conn.transaction().await?;
+
         let create_schema_query = format!(
             r#"create schema if not exists "{schema_name}""#,
             schema_name = self.schema_name,
         );
 
-        let mut conn = self.pool.get().await?;
+        if let Err(err) = tx.execute(&create_schema_query, &[]).await {
+            if !err
+                .to_string()
+                .contains("duplicate key value violates unique constraint")
+            {
+                return Err(err.into());
+            }
 
-        let tx = conn.transaction().await?;
-        tx.execute(&create_schema_query, &[]).await?;
+            return Ok(());
+        }
 
         let create_table_query = format!(
             r#"
@@ -135,13 +175,14 @@ impl PostgresStore {
             schema_name = self.schema_name,
             table_name = self.table_name
         );
+
         let cur_date = OffsetDateTime::now_utc();
         let conn = self.pool.get().await?;
-        let rows = conn
-            .query(&query, &[&session_id.to_string(), &cur_date])
+        let response = conn
+            .query_opt(&query, &[&session_id.to_string(), &cur_date])
             .await?;
 
-        let Some(row) = rows.first() else {
+        let Some(row) = response else {
             return Ok(None);
         };
 
