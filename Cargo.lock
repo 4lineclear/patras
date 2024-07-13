@@ -716,17 +716,6 @@ checksum = "06ea2b9bc92be3c2baa9334a323ebca2d6f074ff852cd1d7b11064035cd3868f"
 [[package]]
 name = "core-server"
 version = "0.0.0"
-dependencies = [
- "anyhow",
- "api",
- "axum 0.7.5",
- "serde",
- "tokio",
- "tower",
- "tower-http",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "cpufeatures"

@@ -3,7 +3,7 @@ use tokio_postgres::Row;
 use uuid::Uuid;
 
 /// A user's data
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct User {
     /// A user's id
     pub id: i64,
