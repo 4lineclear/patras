@@ -7,9 +7,9 @@ edition = "2021"
 # etc
 anyhow = "1.0"
 api = { path = "../api/" }
-async-trait = "0.1"
+# async-trait = "0.1"
 derivative = "2.2"
-rmp-serde = "1.3"
+# rmp-serde = "1.3"
 thiserror = "1.0"
 time = "0.3"
 # auth

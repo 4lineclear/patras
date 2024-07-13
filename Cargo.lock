@@ -699,12 +699,10 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "api",
- "async-trait",
  "axum 0.7.5",
  "axum-login",
  "derivative",
  "libreauth",
- "rmp-serde",
  "serde",
  "sqlx",
  "thiserror",

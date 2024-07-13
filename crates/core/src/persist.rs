@@ -4,14 +4,10 @@
 use derivative::Derivative;
 
 use error::ConnectionError;
-use sql::MIGRATIONS;
 use sqlx::PgPool;
 
 /// Auto generated schema
 pub mod models;
-
-/// Holds some queries
-pub(crate) mod sql;
 
 /// Errors
 #[allow(clippy::module_name_repetitions)]
@@ -28,7 +24,6 @@ pub struct Database {
 /// Opens a connection pool
 async fn open_pool(url: &str) -> Result<PgPool, ConnectionError> {
     let pool = PgPool::connect(url).await?;
-    MIGRATIONS.run(&pool).await?;
     Ok(pool)
 }
 
