@@ -21,14 +21,22 @@ serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.38", features = ["full"] }
 tower = { version = "0.4", features = ["full"] }
 tower-http = { version = "0.5", features = ["full"] }
-tower-sessions = "0.12"
+# tower-sessions = "0.12"
+tower-sessions-sqlx-store = "0.12"
 # persist
-deadpool-postgres = "0.14"
-tokio-postgres = { version = "0.7", features = [
-	"with-uuid-1",
-	"with-time-0_3",
+sqlx = { version = "0.7", features = [
+	"runtime-tokio",
+	"postgres",
+	"macros",
+	"migrate",
+	"uuid",
 ] }
-topoma = { path = "../topoma/" }
+# deadpool-postgres = "0.14"
+# tokio-postgres = { version = "0.7", features = [
+# 	"with-uuid-1",
+# 	"with-time-0_3",
+# ] }
+# topoma = { path = "../topoma/" }
 uuid = "1.10"
 # logging
 tracing = "0.1"

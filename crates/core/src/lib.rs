@@ -43,7 +43,7 @@ pub mod state;
 /// See [`CreateRouterError`]
 pub async fn router(url: String) -> Result<Router, CreateRouterError> {
     let api = Api {
-        auth: Context::new(
+        ctx: Context::new(
             url,
             HashBuilder::new().finalize()?,
             ValidationRules {
@@ -102,35 +102,37 @@ struct UserInfo {
 /// The state of the router
 #[derive(Debug, Clone)]
 pub struct Api {
-    auth: Arc<Context>,
+    ctx: Arc<Context>,
 }
 
 impl Api {
     async fn sign_up(&self, info: &UserInfo) -> StatusCode {
-        use SignUpAction::*;
-
-        match self.auth.sign_up(&info.username, &info.password).await {
-            Ok(UsernameTaken) => StatusCode::CONFLICT,
-            Ok(InvalidPassword) => StatusCode::BAD_REQUEST,
-            Ok(UserAdded(_)) => StatusCode::OK,
-            Err(e) => {
-                tracing::error!("Server error: {e}");
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
-        }
+        StatusCode::INTERNAL_SERVER_ERROR
+        // use SignUpAction::*;
+        //
+        // match self.auth.sign_up(&info.username, &info.password).await {
+        //     Ok(UsernameTaken) => StatusCode::CONFLICT,
+        //     Ok(InvalidPassword) => StatusCode::BAD_REQUEST,
+        //     Ok(UserAdded(_)) => StatusCode::OK,
+        //     Err(e) => {
+        //         tracing::error!("Server error: {e}");
+        //         StatusCode::INTERNAL_SERVER_ERROR
+        //     }
+        // }
     }
     async fn log_in(&self, info: &UserInfo) -> StatusCode {
-        use LoginAction::*;
-
-        match self.auth.login(&info.username, &info.password).await {
-            Ok(UsernameNotFound) => StatusCode::CONFLICT,
-            Ok(IncorrectPassword) => StatusCode::BAD_REQUEST,
-            Ok(LoggedIn(_)) => StatusCode::OK,
-            Err(e) => {
-                tracing::error!("Server error: {e}");
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
-        }
+        StatusCode::INTERNAL_SERVER_ERROR
+        // use LoginAction::*;
+        //
+        // match self.auth.login(&info.username, &info.password).await {
+        //     Ok(UsernameNotFound) => StatusCode::CONFLICT,
+        //     Ok(IncorrectPassword) => StatusCode::BAD_REQUEST,
+        //     Ok(LoggedIn(_)) => StatusCode::OK,
+        //     Err(e) => {
+        //         tracing::error!("Server error: {e}");
+        //         StatusCode::INTERNAL_SERVER_ERROR
+        //     }
+        // }
     }
 }
 

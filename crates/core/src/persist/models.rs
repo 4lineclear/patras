@@ -1,5 +1,5 @@
 use axum_login::AuthUser;
-use tokio_postgres::Row;
+// use tokio_postgres::Row;
 use uuid::Uuid;
 
 /// A user's data
@@ -13,17 +13,6 @@ pub struct User {
     pub username: String,
     /// A (non plaintext) password
     pub password: String,
-}
-
-impl From<Row> for User {
-    fn from(value: Row) -> Self {
-        Self {
-            id: value.get(0),
-            uuid: value.get(1),
-            username: value.get(2),
-            password: value.get(3),
-        }
-    }
 }
 
 impl AuthUser for User {

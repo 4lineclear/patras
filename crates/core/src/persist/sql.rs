@@ -1,4 +1,20 @@
-use topoma::topoma;
+use sqlx::migrate::Migrator;
+
+pub const MIGRATIONS: Migrator = sqlx::migrate!();
+// const INSERT_USER: Migrator = sqlx::query!(
+//     r"
+// Insert Into
+//   users (uuid, username, password)
+// Values
+//   ($1, $2, $3)
+// Returning
+//   *
+// "
+// );
+
+macro_rules! topoma {
+    ($($t:tt)*) => {};
+}
 
 topoma![
     CREATE_USER_TABLE
