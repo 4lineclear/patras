@@ -1,7 +1,5 @@
-import fs from "fs";
-import { HttpProxy, UserConfig, defineConfig } from "vite";
+import { HttpProxy, UserConfig, defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
-import TOML, { TomlPrimitive } from "smol-toml";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
@@ -12,9 +10,24 @@ export default defineConfig(({ command }) => {
   }
 });
 
+function build(): UserConfig {
+  return {
+    plugins: [react()],
+    esbuild: {
+      drop: ["console"],
+    },
+    css: {
+      modules: {
+        localsConvention: "camelCase",
+        scopeBehaviour: "local",
+      },
+    },
+  };
+}
+
 function serve(): UserConfig {
-  const opts = TOML.parse(fs.readFileSync("../env.toml").toString());
-  const ports = getPorts(opts)!;
+  const env = loadEnv("all", "../");
+  const ports = getPorts(env)!;
 
   return {
     plugins: [react()],
@@ -63,51 +76,11 @@ function configureProxy(proxy: HttpProxy.Server) {
   });
 }
 
-function getPorts(opts: Record<string, TomlPrimitive>) {
-  if (!isTomlRecord(opts.dev)) {
-    return undefined;
-  }
-  if (!isTomlRecord(opts.dev.ports)) {
-    return undefined;
-  }
-  if (typeof opts.dev.ports.server !== "number") {
-    return undefined;
-  }
-  if (typeof opts.dev.ports.client !== "number") {
-    return undefined;
-  }
+function getPorts(opts: Record<string, string>) {
+  const server = parseInt(opts.VITE_DEV_SERVER_PORT);
+  const client = parseInt(opts.VITE_DEV_CLIENT_PORT);
   return {
-    server: opts.dev.ports.server,
-    client: opts.dev.ports.client,
-  };
-}
-
-function isTomlRecord(prim: TomlPrimitive): prim is {
-  [key: string]: TomlPrimitive;
-} {
-  if (typeof prim !== "object") {
-    return false;
-  }
-  if (prim instanceof TOML.TomlDate) {
-    return false;
-  }
-  if (Array.isArray(prim)) {
-    return false;
-  }
-  return true;
-}
-
-function build(): UserConfig {
-  return {
-    plugins: [react()],
-    esbuild: {
-      drop: ["console"],
-    },
-    css: {
-      modules: {
-        localsConvention: "camelCase",
-        scopeBehaviour: "local",
-      },
-    },
+    server,
+    client,
   };
 }

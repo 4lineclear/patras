@@ -28,16 +28,18 @@ async fn main() -> Result<()> {
 /// Fails when either [`TcpListener`] or [`axum::serve()`] does
 pub async fn serve() -> Result<()> {
     let pool = PgPool::connect(env!("DATABASE_URL")).await?;
-    let router = router(pool).await.context("Failed to create router")?;
+    let app = router(pool).await.context("Failed to create router")?;
     let listener = TcpListener::bind(concat!("127.0.0.1:", env!("SERVER_PORT"))).await?;
     let address = listener.local_addr()?;
 
     info!("Server Opened, listening on {address}");
-    axum::serve(listener, router.router)
+    axum::serve(listener, app.router)
         .with_graceful_shutdown(signal::signal())
         .await
         .context("Axum Server Error")?;
     info!("Server Closed");
 
+    app.deletion_handle.await??;
+    info!("dev process ending");
     Ok(())
 }

@@ -10,7 +10,7 @@ webbrowser = "1.0"
 
 [build-dependencies]
 anyhow = "1.0"
-toml = "0.8"
+dotenvy = "0.15"
 
 
 [lints]
