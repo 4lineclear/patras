@@ -6,6 +6,7 @@ use std::env;
 use core_server::*;
 
 use anyhow::{Context, Result};
+use sqlx::PgPool;
 use tokio::net::TcpListener;
 use tracing::info;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -26,14 +27,13 @@ async fn main() -> Result<()> {
 ///
 /// Fails when either [`TcpListener`] or [`axum::serve()`] does
 pub async fn serve() -> Result<()> {
-    let router = router(env!("DATABASE_URL").into())
-        .await
-        .context("Failed to create router")?;
+    let pool = PgPool::connect(env!("DATABASE_URL")).await?;
+    let router = router(pool).await.context("Failed to create router")?;
     let listener = TcpListener::bind(concat!("127.0.0.1:", env!("SERVER_PORT"))).await?;
     let address = listener.local_addr()?;
 
     info!("Server Opened, listening on {address}");
-    axum::serve(listener, router)
+    axum::serve(listener, router.router)
         .with_graceful_shutdown(signal::signal())
         .await
         .context("Axum Server Error")?;

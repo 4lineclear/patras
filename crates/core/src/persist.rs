@@ -1,17 +1,17 @@
 #![allow(clippy::wildcard_imports)]
 #![allow(clippy::enum_glob_use)]
+#![allow(clippy::module_name_repetitions)]
 
 use derivative::Derivative;
 
 use error::ConnectionError;
 use sqlx::PgPool;
 
-/// Auto generated schema
-pub mod models;
-
 /// Errors
-#[allow(clippy::module_name_repetitions)]
 pub mod error;
+
+/// Auth
+pub mod auth;
 
 /// The overarching database system
 #[derive(Derivative)]
@@ -19,12 +19,6 @@ pub mod error;
 pub struct Database {
     /// A pool of database conenctions
     pool: PgPool,
-}
-
-/// Opens a connection pool
-async fn open_pool(url: &str) -> Result<PgPool, ConnectionError> {
-    let pool = PgPool::connect(url).await?;
-    Ok(pool)
 }
 
 impl Database {
@@ -35,9 +29,8 @@ impl Database {
     /// # Errors
     ///
     /// See [`ConnectionError`]
-    pub async fn new(url: &str) -> Result<Self, ConnectionError> {
-        Ok(Self {
-            pool: open_pool(url).await?,
-        })
+    #[allow(clippy::unused_async)]
+    pub async fn new(pool: PgPool) -> Result<Self, ConnectionError> {
+        Ok(Self { pool })
     }
 }

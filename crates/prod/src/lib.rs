@@ -4,9 +4,9 @@ use core_server::{
     axum::{
         http::{header, StatusCode, Uri},
         response::{Html, IntoResponse, Response},
-        Router,
     },
-    CreateRouterError,
+    sqlx::PgPool,
+    App, CreateRouterError,
 };
 use rust_embed::Embed;
 
@@ -18,13 +18,17 @@ use rust_embed::Embed;
 #[folder = "$CARGO_MANIFEST_DIR/../../client/dist"]
 pub struct Assets;
 
+pub use core_server::sqlx;
+
 /// Creates a production ready router
 ///
 /// # Errors
 ///
 /// See [`core_server::router`]
-pub async fn router(url: String) -> Result<Router, CreateRouterError> {
-    Ok(core_server::router(url).await?.fallback(static_handler))
+pub async fn router(pool: PgPool) -> Result<App, CreateRouterError> {
+    let mut app = core_server::router(pool).await?;
+    app.router = app.router.fallback(static_handler);
+    Ok(app)
 }
 
 static INDEX_HTML: &str = "index.html";

@@ -1,7 +1,7 @@
 #![allow(clippy::single_match_else)]
 
 use derivative::Derivative;
-use libreauth::pass::Hasher;
+use sqlx::PgPool;
 
 use crate::persist::{error::ConnectionError, Database};
 
@@ -13,9 +13,6 @@ pub struct Context {
     database: Database,
     #[allow(dead_code)]
     rules: ValidationRules,
-    #[derivative(Debug = "ignore")]
-    #[allow(dead_code)]
-    hasher: Hasher,
 }
 
 // TODO: eventually and email sign up using https://docs.rs/lettre/latest/lettre/
@@ -26,15 +23,10 @@ impl Context {
     /// # Errors
     ///
     /// Fails when [`Database::new`] does.
-    pub async fn new(
-        url: String,
-        hasher: Hasher,
-        rules: ValidationRules,
-    ) -> Result<Self, ConnectionError> {
+    pub async fn new(pool: PgPool, rules: ValidationRules) -> Result<Self, ConnectionError> {
         Ok(Self {
-            database: Database::new(&url).await?,
+            database: Database::new(pool).await?,
             rules,
-            hasher,
         })
     }
 }
@@ -42,7 +34,7 @@ impl Context {
 /// Rules for validation
 ///
 /// All values are treated as inclusive
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct ValidationRules {
     /// The minimum username size
     pub name_min: usize,
@@ -60,12 +52,17 @@ impl ValidationRules {
     #[must_use]
     pub const fn validate(&self, name: &str, pass: &str) -> Validated {
         if name.len() < self.name_min || name.len() > self.name_max {
-            Validated::Name
+            Validated::InvalidName
         } else if pass.len() < self.pass_min || pass.len() > self.pass_max {
-            Validated::Pass
+            Validated::InvalidPass
         } else {
-            Validated::Allowed
+            Validated::Valid
         }
+    }
+    /// Validates the given values
+    #[must_use]
+    pub const fn is_valid(&self, name: &str, pass: &str) -> bool {
+        matches!(self.validate(name, pass), Validated::Valid)
     }
 }
 
@@ -73,9 +70,9 @@ impl ValidationRules {
 #[derive(Debug)]
 pub enum Validated {
     /// The given inputs are valid
-    Allowed,
+    Valid,
     /// The given pass is invalid
-    Pass,
+    InvalidPass,
     /// The given name is invalid
-    Name,
+    InvalidName,
 }
