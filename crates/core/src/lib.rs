@@ -8,10 +8,7 @@ use axum::http::StatusCode;
 use axum::routing::post;
 use axum::{Json, Router};
 use axum_login::AuthManagerLayerBuilder;
-use persist::auth::{AuthSession, Credentials};
-use persist::{auth::Backend, error::ConnectionError};
 use sqlx::PgPool;
-use state::{AddUserAction, Context, ValidationRules};
 use thiserror::{self, Error};
 use tokio::task::JoinHandle;
 use tower_http::{
@@ -26,6 +23,14 @@ use tracing_subscriber::{
     filter::FromEnvError, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter,
 };
 
+use state::{
+    persist::{
+        auth::{AuthSession, Backend, Credentials},
+        error::ConnectionError,
+    },
+    AddUserAction, Context, ValidationRules,
+};
+
 // Re-Exports for binary crates
 pub use anyhow;
 pub use axum;
@@ -36,8 +41,6 @@ pub use tracing_subscriber;
 
 /// models
 pub mod models;
-/// Handles persist
-pub mod persist;
 /// Handles state
 pub mod state;
 

@@ -4,10 +4,11 @@ use derivative::Derivative;
 use password_auth::generate_hash;
 use sqlx::PgPool;
 
-use crate::{
-    models::User,
-    persist::{error::ConnectionError, Database},
-};
+use crate::models::User;
+use persist::{error::ConnectionError, Database};
+
+/// Handles persist
+pub mod persist;
 
 /// The central state
 #[derive(Derivative)]
