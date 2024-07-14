@@ -39,7 +39,6 @@ function serve(): UserConfig {
           secure: false,
           ws: true,
           configure: configureProxy,
-          rewrite: (path) => path.replace(/^\/api/, ""),
         },
       },
       port: ports.client,
@@ -48,7 +47,6 @@ function serve(): UserConfig {
       modules: {
         localsConvention: "camelCase",
         scopeBehaviour: "local",
-        generateScopedName: "[name]__[local]___[hash:base64:5]",
       },
       preprocessorOptions: {
         scss: {

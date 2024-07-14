@@ -28,6 +28,7 @@ async fn main() -> Result<()> {
 /// Fails when either [`TcpListener`] or [`axum::serve()`] does
 #[allow(clippy::cognitive_complexity)]
 pub async fn serve() -> Result<()> {
+    signal::scroll();
     let pool = PgPool::connect(env!("DATABASE_URL")).await?;
     let app = router(pool).await.context("Failed to create router")?;
     let listener = TcpListener::bind(concat!("127.0.0.1:", env!("SERVER_PORT"))).await?;

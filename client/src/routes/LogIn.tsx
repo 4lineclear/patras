@@ -21,7 +21,7 @@ export default function LogIn() {
 
   const logIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const res = await fetch("/api/req-log-in", {
+    const res = await fetch("/api/log-in", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(info),
@@ -37,7 +37,7 @@ export default function LogIn() {
   const infoBarText = () => {
     switch (response?.status) {
       case 401:
-        return "Incorrect username or password inputted";
+        return "Incorrect username or password";
       default:
         return "";
     }
@@ -58,7 +58,7 @@ export default function LogIn() {
         <p>Complete the form below to login</p>
 
         <div id={styles.usernameLabelDiv}>
-          <label className={styles.label} htmlFor="username-input">
+          <label className={styles.label} htmlFor={styles.usernameInput}>
             Username:
           </label>
         </div>
@@ -72,7 +72,7 @@ export default function LogIn() {
           onChange={infoChange}
         />
         <div id={styles.passwordLabelDiv}>
-          <label className={styles.label} htmlFor="password-input">
+          <label className={styles.label} htmlFor={styles.passwordInput}>
             Password:
           </label>
           <input
@@ -93,9 +93,7 @@ export default function LogIn() {
           value={info.password}
           onChange={infoChange}
         />
-        <div id={styles.infoBar}>
-          {infoBarText()}
-        </div>
+        <div id={styles.infoBar}>{infoBarText()}</div>
         <input id={styles.submitButton} type="submit" value="Log In" />
       </form>
     </div>

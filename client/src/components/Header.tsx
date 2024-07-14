@@ -6,7 +6,7 @@ import styles from "./header.module.scss";
 /**
  * The optional login buttons
  */
-function Buttons() {
+function AuthButtons() {
   return (
     <div>
       <span className={styles.linkContainer}>
@@ -35,7 +35,7 @@ export default function Header() {
         <span className={styles.titleLarge}>S</span>
         <span className={styles.titleSmall}>olo</span>
       </Link>
-      {context.auth.login ? null : <Buttons />}
+      {context.auth.login ? null : <AuthButtons />}
     </header>
   );
 }

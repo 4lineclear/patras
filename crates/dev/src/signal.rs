@@ -80,13 +80,15 @@ fn handle_console_input(s: &str) -> bool {
                 tracing::info!("Unable to open browser");
             }
         }
-        "c" => {
-            print!("\x1B[2J\x1B[1;1H");
-            let _ = std::io::Write::flush(&mut std::io::stdout());
-        }
+        "c" => scroll(),
         "u" => println!("Local port: http://localhost:{}/", env!("SERVER_PORT")),
         "q" => return true,
         _ => (),
     }
     false
+}
+
+pub(super) fn scroll() {
+    print!("\x1B[2J\x1B[1;1H");
+    let _ = std::io::Write::flush(&mut std::io::stdout());
 }

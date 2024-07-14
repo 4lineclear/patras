@@ -22,7 +22,7 @@ export default function SignUp() {
   const signUp = async (event: FormEvent<HTMLFormElement>) => {
     setResponse(null);
     event.preventDefault();
-    const res = await fetch("/api/req-sign-up", {
+    const res = await fetch("/api/sign-up", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(info),
@@ -60,6 +60,7 @@ export default function SignUp() {
     );
   }
 
+  // TODO: consider redirecting on the server side
   return (
     <div id={styles.page}>
       <form id={styles.form} onSubmit={signUp}>
@@ -67,7 +68,7 @@ export default function SignUp() {
         <p>Complete the form below to create your account</p>
 
         <div id={styles.usernameLabelDiv}>
-          <label className={styles.label} htmlFor="username-input">
+          <label className={styles.label} htmlFor={styles.usernameInput}>
             Username:
           </label>
         </div>
@@ -84,7 +85,7 @@ export default function SignUp() {
           {nameInfoBarText()}
         </div>
         <div id={styles.passwordLabelDiv}>
-          <label className={styles.label} htmlFor="password-input">
+          <label className={styles.label} htmlFor={styles.passwordInput}>
             Password:
           </label>
           <input

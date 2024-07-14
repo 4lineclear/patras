@@ -5,6 +5,7 @@ use std::{sync::Arc, time::Duration};
 
 use axum::extract::State;
 use axum::http::StatusCode;
+use axum::response::IntoResponse;
 use axum::routing::post;
 use axum::{Json, Router};
 use axum_login::AuthManagerLayerBuilder;
@@ -64,8 +65,7 @@ pub async fn router(pool: PgPool) -> Result<App, CreateRouterError> {
         name_min: 1,
         name_max: 128,
     };
-    let ctx = Context::new(pool.clone(), rules).await?.into();
-    let api = Api { ctx };
+    let api = Arc::new(Context::new(pool.clone(), rules).await?);
 
     let session_store = PostgresStore::new(pool.clone());
     session_store
@@ -114,8 +114,8 @@ async fn deletion_task(
 /// Creates the actual routes
 fn gen_router() -> Router<Api> {
     Router::new()
-        .route("/req-log-in", post(login))
-        .route("/req-sign-up", post(sign_up))
+        .route("/api/log-in", post(login))
+        .route("/api/sign-up", post(sign_up))
 }
 
 async fn login(mut auth: AuthSession, creds: Json<Credentials>) -> StatusCode {
@@ -132,14 +132,15 @@ async fn login(mut auth: AuthSession, creds: Json<Credentials>) -> StatusCode {
     StatusCode::OK
 }
 
-async fn sign_up(State(api): State<Api>, creds: Json<Credentials>) -> StatusCode {
+async fn sign_up(State(api): State<Api>, creds: Json<Credentials>) -> impl IntoResponse {
     use AddUserAction::*;
+    tracing::error!("Sign up request recieved");
 
     match api.sign_up(&creds.username, &creds.password).await {
-        Ok(Added(_)) => StatusCode::OK,
-        Ok(InvalidName) => StatusCode::CONFLICT,
-        Ok(InvalidPass) => StatusCode::BAD_REQUEST,
-        Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        Ok(Added(user)) => (StatusCode::OK, user.uuid.to_string()).into_response(),
+        Ok(InvalidName) => StatusCode::CONFLICT.into_response(),
+        Ok(InvalidPass) => StatusCode::BAD_REQUEST.into_response(),
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
 }
 
@@ -151,19 +152,7 @@ pub enum CreateRouterError {
     ConnectionError(#[from] ConnectionError),
 }
 
-/// The state of the router
-#[derive(Debug, Clone)]
-pub struct Api {
-    ctx: Arc<Context>,
-}
-
-impl std::ops::Deref for Api {
-    type Target = Context;
-
-    fn deref(&self) -> &Self::Target {
-        &self.ctx
-    }
-}
+type Api = Arc<Context>;
 
 /// Creates a logging object
 ///

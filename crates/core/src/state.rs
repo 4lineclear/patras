@@ -43,20 +43,17 @@ impl Context {
         password: &str,
     ) -> Result<AddUserAction, sqlx::Error> {
         match self.rules.validate(username, password) {
-            Validated::Valid => {
-                if self.database.get_user(username).await?.is_some() {
-                    return Ok(AddUserAction::InvalidName);
-                }
-            }
-            Validated::InvalidName => return Ok(AddUserAction::InvalidName),
-            Validated::InvalidPass => return Ok(AddUserAction::InvalidPass),
+            Validated::Valid if self.database.get_user(username).await?.is_none() => self
+                .database
+                .add_user(username, &generate_hash(password))
+                .await
+                .map(AddUserAction::Added),
+            Validated::Valid => Ok(AddUserAction::InvalidName),
+            Validated::InvalidName => Ok(AddUserAction::InvalidName),
+            Validated::InvalidPass => Ok(AddUserAction::InvalidPass),
         }
-
-        self.database
-            .add_user(username, &generate_hash(password))
-            .await
-            .map(AddUserAction::Added)
     }
+
     /// Try get a user according to their username
     ///
     /// # Errors
