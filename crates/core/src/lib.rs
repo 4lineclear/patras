@@ -134,13 +134,12 @@ async fn login(mut auth: AuthSession, creds: Json<Credentials>) -> StatusCode {
 
 async fn sign_up(State(api): State<Api>, creds: Json<Credentials>) -> impl IntoResponse {
     use AddUserAction::*;
-    tracing::error!("Sign up request recieved");
 
     match api.sign_up(&creds.username, &creds.password).await {
-        Ok(Added(user)) => (StatusCode::OK, user.uuid.to_string()).into_response(),
-        Ok(InvalidName) => StatusCode::CONFLICT.into_response(),
-        Ok(InvalidPass) => StatusCode::BAD_REQUEST.into_response(),
-        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+        Ok(Added(_)) => StatusCode::OK,
+        Ok(InvalidName) => StatusCode::CONFLICT,
+        Ok(InvalidPass) => StatusCode::BAD_REQUEST,
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
     }
 }
 
