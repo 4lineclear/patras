@@ -34,18 +34,10 @@ export default function LogIn() {
     setAttempts(attempts + 1);
   };
 
-  const passInfoBarText = () => {
+  const infoBarText = () => {
     switch (response?.status) {
-      case 409:
-        return "Incorrect password inputted";
-      default:
-        return "";
-    }
-  };
-  const nameInfoBarText = () => {
-    switch (response?.status) {
-      case 400:
-        return "Username not found";
+      case 401:
+        return "Incorrect username or password inputted";
       default:
         return "";
     }
@@ -79,9 +71,6 @@ export default function LogIn() {
           value={info.username}
           onChange={infoChange}
         />
-        <div id={styles.nameInfoBar} className={styles.infoBar}>
-          {nameInfoBarText()}
-        </div>
         <div id={styles.passwordLabelDiv}>
           <label className={styles.label} htmlFor="password-input">
             Password:
@@ -104,8 +93,8 @@ export default function LogIn() {
           value={info.password}
           onChange={infoChange}
         />
-        <div id={styles.passInfoBar} className={styles.infoBar}>
-          {passInfoBarText()}
+        <div id={styles.infoBar}>
+          {infoBarText()}
         </div>
         <input id={styles.submitButton} type="submit" value="Log In" />
       </form>

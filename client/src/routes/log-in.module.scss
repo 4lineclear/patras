@@ -28,6 +28,10 @@
   }
 }
 
+#username-input {
+  margin-bottom: 60px;
+}
+
 #username-label-div {
   margin-bottom: 5px;
 }
@@ -56,12 +60,7 @@
   width: 100%;
 }
 
-#name-info-bar {
-}
-#pass-info-bar {
-}
-
-.info-bar {
+#info-bar {
   height: 1rem;
   color: red;
   margin-bottom: 60px;

@@ -118,12 +118,10 @@ fn gen_router() -> Router<Api> {
         .route("/req-sign-up", post(sign_up))
 }
 
-// TODO: improve upon messaging
-
 async fn login(mut auth: AuthSession, creds: Json<Credentials>) -> StatusCode {
     let user = match auth.authenticate(creds.0).await {
         Ok(Some(user)) => user,
-        Ok(None) => return StatusCode::BAD_REQUEST,
+        Ok(None) => return StatusCode::UNAUTHORIZED,
         Err(_) => return StatusCode::INTERNAL_SERVER_ERROR,
     };
 
@@ -139,7 +137,8 @@ async fn sign_up(State(api): State<Api>, creds: Json<Credentials>) -> StatusCode
 
     match api.sign_up(&creds.username, &creds.password).await {
         Ok(Added(_)) => StatusCode::OK,
-        Ok(InvalidName | InvalidPass) => StatusCode::BAD_REQUEST,
+        Ok(InvalidName) => StatusCode::CONFLICT,
+        Ok(InvalidPass) => StatusCode::BAD_REQUEST,
         Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
     }
 }

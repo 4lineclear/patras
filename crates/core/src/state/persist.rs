@@ -56,4 +56,21 @@ impl Database {
         .fetch_one(&self.pool)
         .await
     }
+
+    /// Get user by username
+    ///
+    /// Note: password must be hashed
+    ///
+    /// # Errors
+    ///
+    /// See [`sqlx`]
+    ///
+    /// # Panics
+    ///
+    /// May be possible due to sqlx
+    pub async fn get_user(&self, username: &str) -> Result<Option<User>, sqlx::Error> {
+        sqlx::query_file_as!(User, "queries/select_username.sql", username,)
+            .fetch_optional(&self.pool)
+            .await
+    }
 }

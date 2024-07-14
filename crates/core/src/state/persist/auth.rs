@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use axum_login::{AuthnBackend, UserId};
+use axum_login::{AuthnBackend, AuthzBackend, UserId};
 use password_auth::verify_password;
 use serde::Deserialize;
 use sqlx::PgPool;
@@ -55,12 +55,17 @@ impl AuthnBackend for Backend {
         &self,
         creds: Self::Credentials,
     ) -> Result<Option<Self::User>, Self::Error> {
-        let user = sqlx::query_file_as!(User, "queries/select_username.sql", creds.username)
+        let Some(user) = sqlx::query_file_as!(User, "queries/select_username.sql", creds.username)
             .fetch_optional(&self.pool)
-            .await?;
+            .await?
+        else {
+            return Ok(None);
+        };
 
         task::spawn_blocking(|| {
-            Ok(user.filter(|user| verify_password(creds.password, &user.password).is_ok()))
+            Ok(verify_password(creds.password, &user.password)
+                .ok()
+                .map(|()| user))
         })
         .await?
     }
@@ -72,4 +77,10 @@ impl AuthnBackend for Backend {
 
         Ok(user)
     }
+}
+
+#[async_trait]
+impl AuthzBackend for Backend {
+    /// Permission type.
+    type Permission = ();
 }

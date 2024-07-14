@@ -20,6 +20,7 @@ export default function SignUp() {
   const [response, setResponse] = useState<Response | null>(null);
 
   const signUp = async (event: FormEvent<HTMLFormElement>) => {
+    setResponse(null);
     event.preventDefault();
     const res = await fetch("/api/req-sign-up", {
       method: "POST",
@@ -36,16 +37,16 @@ export default function SignUp() {
 
   const passInfoBarText = () => {
     switch (response?.status) {
-      case 409:
-        return "Incorrect password inputted";
+      case 400:
+        return "Invalid password inputted";
       default:
         return "";
     }
   };
   const nameInfoBarText = () => {
     switch (response?.status) {
-      case 400:
-        return "Username not found";
+      case 409:
+        return "Username invalid";
       default:
         return "";
     }
