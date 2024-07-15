@@ -3,12 +3,21 @@ import { Context } from "../Context";
 import { useContext } from "react";
 import styles from "./header.module.scss";
 
-/**
- * The optional login buttons
- */
-function AuthButtons() {
+function AuthOutButtons() {
   return (
-    <div>
+    <>
+      <span className={styles.linkContainer}>
+        <Link href="log-out">
+          <span className={styles.linkText}>Log Out</span>
+        </Link>
+      </span>
+    </>
+  );
+}
+
+function AuthInButtons() {
+  return (
+    <>
       <span className={styles.linkContainer}>
         <Link href="log-in">
           <span className={styles.linkText}>Log In</span>
@@ -19,12 +28,22 @@ function AuthButtons() {
           <span className={styles.linkText}>Sign Up</span>
         </Link>
       </span>
-    </div>
+    </>
   );
 }
 
 export default function Header() {
   const context = useContext(Context);
+  const Buttons = () => {
+    switch (context.auth.login) {
+      case "logged-in":
+        return <AuthOutButtons />;
+      case "logged-out":
+        return <AuthInButtons />;
+      case "loading":
+        return null;
+    }
+  };
   return (
     <header>
       <Link id={styles.titleHolder} href="/">
@@ -35,7 +54,7 @@ export default function Header() {
         <span className={styles.titleLarge}>S</span>
         <span className={styles.titleSmall}>olo</span>
       </Link>
-      {context.auth.login ? null : <AuthButtons />}
+      <div>{Buttons()}</div>
     </header>
   );
 }

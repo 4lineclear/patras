@@ -7,7 +7,7 @@ use uuid::Uuid;
 #[derive(Clone, FromRow)]
 pub struct User {
     /// A user's id
-    pub id: i64,
+    pub id: i32,
     /// A user's uuid
     pub uuid: Uuid,
     /// A user name. Mostly used for authentication
@@ -30,7 +30,7 @@ impl std::fmt::Debug for User {
 }
 
 impl AuthUser for User {
-    type Id = i64;
+    type Id = i32;
 
     fn id(&self) -> Self::Id {
         self.id

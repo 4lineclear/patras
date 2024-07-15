@@ -1,0 +1,44 @@
+@use "../main.scss" as *;
+
+/* TODO: better styling */
+
+#page {
+  overflow: hidden;
+  position: relative;
+  background-color: #888888;
+  width: 100%;
+  height: 100%;
+}
+
+#form {
+  background-color: #fefefe;
+  margin: 10vh auto 2rem auto;
+  width: 600px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  @include size(lg) {
+    width: 500px;
+  }
+  @include size(md) {
+    width: 400px;
+  }
+  @include size(sm) {
+    width: 300px;
+  }
+}
+
+#submit-button {
+  border-radius: 0;
+  padding: 10px;
+  font-size: 1.2rem;
+  width: 100%;
+}
+
+#info-bar {
+  height: 1rem;
+  color: red;
+  margin-bottom: 60px;
+}

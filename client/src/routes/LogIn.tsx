@@ -21,13 +21,15 @@ export default function LogIn() {
 
   const logIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     const res = await fetch("/api/log-in", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(info),
     });
+
     if (res.status == 200) {
-      context.auth.setLogin(true);
+      context.auth.setLogin("logged-in");
       setLocation("/");
     }
     setResponse(res);
@@ -43,7 +45,7 @@ export default function LogIn() {
     }
   };
 
-  if (context.auth.login) {
+  if (context.auth.login == "logged-in") {
     return (
       <div>
         <h1>User is already logged in</h1>

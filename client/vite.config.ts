@@ -54,7 +54,9 @@ function serve(): UserConfig {
         },
       },
     },
-    build: { minify: false, cssMinify: false },
+    build: {
+      sourcemap: true,
+    },
   };
 }
 

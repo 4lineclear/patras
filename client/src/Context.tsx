@@ -4,6 +4,7 @@ import {
   ReactNode,
   useCallback,
   DependencyList,
+  useEffect
 } from "react";
 
 interface Context {
@@ -11,12 +12,11 @@ interface Context {
 }
 
 interface Auth {
-  /**
-   * `true` if user logged in
-   */
-  login: boolean;
-  setLogin: (login: boolean) => void;
+  login: Login;
+  setLogin: (login: Login) => void;
 }
+
+type Login = "logged-in" | "logged-out" | "loading";
 
 function useStateCallback<S>(
   initialState: S | (() => S),
@@ -36,7 +36,23 @@ function useStateCallback<S>(
 export const Context = createContext<Context>(null!);
 
 export function ContextProvider({ children }: { children: ReactNode }) {
-  const [login, setLogin] = useStateCallback(false);
+  const [login, setLogin] = useStateCallback<Login>("loading");
+
+  useEffect(() => {
+    fetch("/api/check-login", { method: "GET" }).then((res) => {
+      switch (res.status) {
+        case 200:
+          setLogin("logged-in");
+          break;
+        case 401:
+          setLogin("logged-out");
+          break;
+        default:
+          setLogin("logged-out");
+          break;
+      }
+    });
+  }, [setLogin])
 
   return (
     <Context.Provider value={{ auth: { login, setLogin } }}>

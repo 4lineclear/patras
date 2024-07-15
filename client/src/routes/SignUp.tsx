@@ -28,7 +28,7 @@ export default function SignUp() {
       body: JSON.stringify(info),
     });
     if (res.status == 200) {
-      context.auth.setLogin(true);
+      context.auth.setLogin("logged-in");
       setLocation("/");
     }
     setResponse(res);
@@ -52,7 +52,7 @@ export default function SignUp() {
     }
   };
 
-  if (context.auth.login) {
+  if (context.auth.login == "logged-in") {
     return (
       <div>
         <h1>User is already logged in</h1>

@@ -5,6 +5,7 @@ import Index from "./routes/Index";
 import SignUp from "./routes/SignUp";
 import { ContextProvider } from "./Context";
 import LogIn from "./routes/LogIn";
+import LogOut from "./routes/LogOut";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/" component={Index} />
           <Route path="/log-in" component={LogIn} />
           <Route path="/sign-up" component={SignUp} />
+          <Route path="/log-out" component={LogOut} />
           <Route path="*" component={PageNotFound} />
         </Switch>
       </ContextProvider>

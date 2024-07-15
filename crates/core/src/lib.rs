@@ -6,12 +6,13 @@ use std::{sync::Arc, time::Duration};
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::routing::post;
+use axum::routing::{get, post};
 use axum::{Json, Router};
-use axum_login::AuthManagerLayerBuilder;
+use axum_login::{login_required, AuthManagerLayerBuilder};
 use sqlx::PgPool;
 use thiserror::{self, Error};
 use tokio::task::JoinHandle;
+use tower::ServiceBuilder;
 use tower_http::{
     catch_panic::CatchPanicLayer, compression::CompressionLayer, timeout::TimeoutLayer,
     trace::TraceLayer,
@@ -65,14 +66,12 @@ pub async fn router(pool: PgPool) -> Result<App, CreateRouterError> {
         name_min: 1,
         name_max: 128,
     };
-    let api = Arc::new(Context::new(pool.clone(), rules).await?);
 
     let session_store = PostgresStore::new(pool.clone());
     session_store
         .migrate()
         .await
         .map_err(ConnectionError::from)?;
-    let backend = Backend::new(pool.clone());
 
     let deletion_handle = tokio::spawn(deletion_task(
         session_store.clone(),
@@ -81,21 +80,30 @@ pub async fn router(pool: PgPool) -> Result<App, CreateRouterError> {
 
     // Generate a cryptographic key to sign the session cookie.
     let key = Key::generate();
-    let session_layer = SessionManagerLayer::new(session_store)
+    let session_manager_layer = SessionManagerLayer::new(session_store)
         .with_secure(false)
         .with_expiry(Expiry::OnInactivity(time::Duration::days(1)))
         .with_signed(key);
+    let backend = Backend::new(pool.clone());
+    let auth_layer = AuthManagerLayerBuilder::new(backend, session_manager_layer).build();
 
-    let layers = (
-        CompressionLayer::new(),
-        TraceLayer::new_for_http(),
-        TimeoutLayer::new(Duration::from_secs(4)),
-        CatchPanicLayer::new(),
-        AuthManagerLayerBuilder::new(backend, session_layer).build(),
-    );
+    let layers = ServiceBuilder::new()
+        .layer(CompressionLayer::new())
+        .layer(TraceLayer::new_for_http())
+        .layer(TimeoutLayer::new(Duration::from_secs(4)))
+        .layer(CatchPanicLayer::new())
+        .layer(auth_layer);
+
+    let api = Context::new(pool, rules).await?;
+    let api = Arc::new(api);
+
+    let router = auth_routes()
+        .merge(protected_routes())
+        .layer(layers)
+        .with_state(api);
 
     Ok(App {
-        router: gen_router().layer(layers).with_state(api),
+        router,
         deletion_handle,
     })
 }
@@ -112,10 +120,30 @@ async fn deletion_task(
 }
 
 /// Creates the actual routes
-fn gen_router() -> Router<Api> {
+fn auth_routes() -> Router<Api> {
     Router::new()
         .route("/api/log-in", post(login))
         .route("/api/sign-up", post(sign_up))
+}
+
+/// Creates the actual routes
+fn protected_routes() -> Router<Api> {
+    Router::new()
+        .route("/api/check-login", get(check_login))
+        .route("/api/log-out", post(logout))
+        .layer(login_required!(Backend))
+}
+
+async fn check_login() -> impl IntoResponse {
+    StatusCode::OK
+}
+
+async fn logout(mut auth: AuthSession) -> impl IntoResponse {
+    match auth.logout().await {
+        Ok(Some(_)) => StatusCode::OK,
+        Ok(None) => StatusCode::UNAUTHORIZED,
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+    }
 }
 
 async fn login(mut auth: AuthSession, creds: Json<Credentials>) -> StatusCode {
