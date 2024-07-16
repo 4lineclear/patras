@@ -2068,10 +2068,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "patras-server"
-version = "0.0.0"
-
-[[package]]
 name = "pem-rfc7468"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

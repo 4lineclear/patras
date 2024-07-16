@@ -38,6 +38,7 @@ pub use anyhow;
 pub use axum;
 pub use sqlx;
 pub use tokio;
+pub use tower_sessions;
 pub use tracing;
 pub use tracing_subscriber;
 
@@ -59,14 +60,7 @@ pub struct App {
 /// # Errors
 ///
 /// See [`CreateRouterError`]
-pub async fn router(pool: PgPool) -> Result<App, CreateRouterError> {
-    let rules = ValidationRules {
-        pass_min: 8,
-        pass_max: 128,
-        name_min: 1,
-        name_max: 128,
-    };
-
+pub async fn router(key: Key, pool: PgPool) -> Result<App, CreateRouterError> {
     let session_store = PostgresStore::new(pool.clone());
     session_store
         .migrate()
@@ -78,8 +72,6 @@ pub async fn router(pool: PgPool) -> Result<App, CreateRouterError> {
         Duration::from_secs(60),
     ));
 
-    // Generate a cryptographic key to sign the session cookie.
-    let key = Key::generate();
     let session_manager_layer = SessionManagerLayer::new(session_store)
         .with_secure(false)
         .with_expiry(Expiry::OnInactivity(time::Duration::days(1)))
@@ -88,12 +80,18 @@ pub async fn router(pool: PgPool) -> Result<App, CreateRouterError> {
     let auth_layer = AuthManagerLayerBuilder::new(backend, session_manager_layer).build();
 
     let layers = ServiceBuilder::new()
-        .layer(CompressionLayer::new())
-        .layer(TraceLayer::new_for_http())
-        .layer(TimeoutLayer::new(Duration::from_secs(4)))
         .layer(CatchPanicLayer::new())
+        .layer(TraceLayer::new_for_http())
+        .layer(CompressionLayer::new())
+        .layer(TimeoutLayer::new(Duration::from_secs(4)))
         .layer(auth_layer);
 
+    let rules = ValidationRules {
+        pass_min: 8,
+        pass_max: 128,
+        name_min: 1,
+        name_max: 128,
+    };
     let api = Context::new(pool, rules).await?;
     let api = Arc::new(api);
 
@@ -131,7 +129,7 @@ fn protected_routes() -> Router<Api> {
     Router::new()
         .route("/api/check-login", get(check_login))
         .route("/api/log-out", post(logout))
-        .layer(login_required!(Backend))
+        .route_layer(login_required!(Backend))
 }
 
 async fn check_login() -> impl IntoResponse {
@@ -195,6 +193,7 @@ pub fn create_logging() -> Result<impl SubscriberInitExt + SubscriberExt, FromEn
         .with_default_directive(LevelFilter::OFF.into())
         .from_env()?
         .add_directive("axum=trace".parse().unwrap())
+        .add_directive("axum_login=trace".parse().unwrap())
         .add_directive("core_server=trace".parse().unwrap())
         .add_directive("dev_server=trace".parse().unwrap())
         .add_directive("tower_http=trace".parse().unwrap());

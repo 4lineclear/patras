@@ -2,6 +2,7 @@
 # # when developing macro, excluding makes recompilation easy
 # exclude = ["crates/topoma/"]
 members = ["crates/*"]
+resolver = "2"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
@@ -19,10 +20,3 @@ nursery = "deny"
 # enum_glob_use = "allow"
 # equatable_if_let = "allow"
 # wildcard_imports = "allow"
-
-[package]
-name = "patras-server"
-version = "0.0.0"
-edition = "2021"
-
-[dependencies]

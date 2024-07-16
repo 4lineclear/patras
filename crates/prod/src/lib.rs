@@ -6,6 +6,7 @@ use core_server::{
         response::{Html, IntoResponse, Response},
     },
     sqlx::PgPool,
+    tower_sessions::cookie::Key,
     App, CreateRouterError,
 };
 use rust_embed::Embed;
@@ -26,7 +27,8 @@ pub use core_server::sqlx;
 ///
 /// See [`core_server::router`]
 pub async fn router(pool: PgPool) -> Result<App, CreateRouterError> {
-    let mut app = core_server::router(pool).await?;
+    let key = Key::generate();
+    let mut app = core_server::router(key, pool).await?;
     app.router = app.router.fallback(static_handler);
     Ok(app)
 }

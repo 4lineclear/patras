@@ -12,12 +12,23 @@ pub type AuthSession = axum_login::AuthSession<Backend>;
 
 /// This allows us to extract the authentication fields from forms. We use this
 /// to authenticate requests with the backend.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct Credentials {
     /// Username
     pub username: String,
     /// Password
     pub password: String,
+}
+
+// Here we've implemented `Debug` manually to avoid accidentally logging the
+// password hash.
+impl std::fmt::Debug for Credentials {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("User")
+            .field("username", &self.username)
+            .field("password", &"[redacted]")
+            .finish()
+    }
 }
 
 /// Auth backend

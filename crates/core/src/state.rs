@@ -48,8 +48,7 @@ impl Context {
                 .add_user(username, &generate_hash(password))
                 .await
                 .map(AddUserAction::Added),
-            Validated::Valid => Ok(AddUserAction::InvalidName),
-            Validated::InvalidName => Ok(AddUserAction::InvalidName),
+            Validated::Valid | Validated::InvalidName => Ok(AddUserAction::InvalidName),
             Validated::InvalidPass => Ok(AddUserAction::InvalidPass),
         }
     }
