@@ -1,7 +1,3 @@
-#![allow(clippy::wildcard_imports)]
-#![allow(clippy::enum_glob_use)]
-#![allow(clippy::module_name_repetitions)]
-
 use crate::models::User;
 use derivative::Derivative;
 use error::ConnectionError;
@@ -10,9 +6,6 @@ use uuid::Uuid;
 
 /// Errors
 pub mod error;
-
-/// Auth
-pub mod auth;
 
 /// The overarching database system
 #[derive(Derivative)]

@@ -1,13 +1,17 @@
 //! The core server implementations
 #![allow(clippy::enum_glob_use)]
+#![allow(clippy::wildcard_imports)]
+#![allow(clippy::module_name_repetitions)]
 
 use std::{sync::Arc, time::Duration};
 
-use axum::extract::State;
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::routing::{get, post};
-use axum::{Json, Router};
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
+};
 use axum_login::{login_required, AuthManagerLayerBuilder};
 use sqlx::PgPool;
 use thiserror::{self, Error};
@@ -17,21 +21,15 @@ use tower_http::{
     catch_panic::CatchPanicLayer, compression::CompressionLayer, timeout::TimeoutLayer,
     trace::TraceLayer,
 };
-use tower_sessions::ExpiredDeletion;
-use tower_sessions::{cookie::Key, Expiry, SessionManagerLayer};
+use tower_sessions::{cookie::Key, ExpiredDeletion, Expiry, SessionManagerLayer};
 use tower_sessions_sqlx_store::PostgresStore;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{
     filter::FromEnvError, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter,
 };
 
-use state::{
-    persist::{
-        auth::{AuthSession, Backend, Credentials},
-        error::ConnectionError,
-    },
-    AddUserAction, Context, ValidationRules,
-};
+use auth::{AuthSession, Backend, Credentials};
+use state::{persist::error::ConnectionError, AddUserAction, Context, ValidationRules};
 
 // Re-Exports for binary crates
 pub use anyhow;
@@ -42,6 +40,8 @@ pub use tower_sessions;
 pub use tracing;
 pub use tracing_subscriber;
 
+/// Handles auth
+pub mod auth;
 /// models
 pub mod models;
 /// Handles state
